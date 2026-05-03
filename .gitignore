@@ -1,0 +1,17 @@
+# Raw capture bundles and scratch pages used while reverse-mapping GT7 data.
+car-shots-index-*.js
+cars-id-list.*.js
+cars.*.js
+official-carlist-bundle.js
+official-tracklist-bundle.js
+gtsport-tracklist.html
+speciii.html
+tokyo-logo-module.js
+official-tracks-gb.js
+official-tracks-id-list-gb.js
+assets/tmp-*
+
+# OS/editor noise.
+.DS_Store
+Thumbs.db
+.vscode/

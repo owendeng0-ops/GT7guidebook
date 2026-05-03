@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GT7 赛道攻略平台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Gran Turismo 7 Track Guide</p>
+        <h1 class="speed-title" data-text="GT7 TRACK ATLAS">
+          <span>GT7</span>
+          <span>TRACK ATLAS</span>
+        </h1>
+        <p class="intro">
+          按游戏内 World Circuits 大陆分区整理赛道，结合难度目标圈速、车辆选择和练习重点做快速检索。
+        </p>
+      </div>
+      <div class="header-stats" aria-label="资料概览">
+        <div>
+          <strong id="trackCount">41</strong>
+          <span>赛道地点</span>
+        </div>
+        <div>
+          <strong>121</strong>
+          <span>官方布局基准</span>
+        </div>
+        <div>
+          <strong>3</strong>
+          <span>大陆分区</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="control-band" aria-label="筛选赛道">
+        <div class="search-box">
+          <label for="searchInput">搜索</label>
+          <input id="searchInput" type="search" placeholder="输入赛道、国家、车辆或技巧关键词" />
+        </div>
+        <div class="filter-group" aria-label="大陆">
+          <button class="chip active" data-region="all">全部</button>
+          <button class="chip" data-region="Europe">欧洲</button>
+          <button class="chip" data-region="Asia-Oceania">亚洲 / 大洋洲</button>
+          <button class="chip" data-region="Americas">美洲</button>
+        </div>
+        <div class="filter-group" aria-label="难度">
+          <button class="chip active" data-difficulty="all">全部难度</button>
+          <button class="chip" data-difficulty="新手">新手</button>
+          <button class="chip" data-difficulty="进阶">进阶</button>
+          <button class="chip" data-difficulty="高手">高手</button>
+        </div>
+      </section>
+
+      <section class="dashboard">
+        <aside class="track-list" aria-label="赛道列表">
+          <div class="section-title">
+            <h2>赛道索引</h2>
+            <span id="resultCount"></span>
+          </div>
+          <div id="trackList" class="track-list-items"></div>
+        </aside>
+
+        <section class="detail-panel" aria-live="polite">
+          <div id="trackDetail"></div>
+        </section>
+      </section>
+
+      <section class="method-band">
+        <div>
+          <h2>数据口径</h2>
+          <p>
+            圈速以默认晴天、赛车硬胎或同级运动胎、无氮气、低油耗影响作为训练基准；不是官方世界纪录。每条赛道的目标区间用于帮助玩家判断当前练习阶段。
+          </p>
+        </div>
+        <div>
+          <h2>资料来源</h2>
+          <ul>
+            <li><a href="https://www.gran-turismo.com/gb/products/gt7/" target="_blank" rel="noreferrer">Gran Turismo 官方产品页</a>：41 个地点、121 种布局。</li>
+            <li><a href="https://www.gran-turismo.com/us/gt7/tracklist/" target="_blank" rel="noreferrer">Gran Turismo 7 Tracks List</a>：官方赛道标识、布局数、长度、弯角、海拔差与最长直道。</li>
+            <li><a href="https://www.gran-turismo.com/hk/news/00_4185758.html" target="_blank" rel="noreferrer">Spec III 官方更新</a>：Yas Marina 与 Circuit Gilles-Villeneuve。</li>
+            <li><a href="https://www.gtwiki.co.uk/wiki/Tracks_in_Gran_Turismo_7" target="_blank" rel="noreferrer">GT Wiki Tracks in Gran Turismo 7</a>：布局级赛道图，已离线缓存到本地。</li>
+            <li><a href="https://www.gtplanet.net/guides/gran-turismo-7/" target="_blank" rel="noreferrer">GTPlanet GT7 指南</a> 与 <a href="https://gtplus.app/gt7/tracks" target="_blank" rel="noreferrer">GTPlus Track Database</a>：赛道整理、解锁和社区参考。</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="./official-tracks-data.js"></script>
+    <script src="./layout-assets.js"></script>
+    <script src="./layout-verification.js"></script>
+    <script src="./vehicle-assets.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

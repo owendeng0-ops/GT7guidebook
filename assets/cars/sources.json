@@ -1,0 +1,470 @@
+{
+  "Alfa Romeo Giulia GTAm": {
+    "id": "car3411",
+    "file": "assets/cars/car3411.png",
+    "officialName": "Alfa Romeo Giulia GTAm '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3411.png"
+  },
+  "Alpine A110": {
+    "id": "car3337",
+    "file": "assets/cars/car3337.png",
+    "officialName": "Alpine A110 Première Édition '17",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3337.png"
+  },
+  "Aston Martin Vantage Gr.4": {
+    "id": "car2157",
+    "file": "assets/cars/car2157.png",
+    "officialName": "Aston Martin Vantage Gr.4",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2157.png"
+  },
+  "Audi R8 LMS Evo": {
+    "id": "car3405",
+    "file": "assets/cars/car3405.png",
+    "officialName": "Audi R8 LMS Evo '19",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3405.png"
+  },
+  "Audi Sport quattro S1": {
+    "id": "car1927",
+    "file": "assets/cars/car1927.png",
+    "officialName": "Audi Sport quattro S1 Pikes Peak '87",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1927.png"
+  },
+  "Ayrton Senna F1 tribute builds": {
+    "id": "car3475",
+    "file": "assets/cars/car3475.png",
+    "officialName": "McLaren MP4/4 '88",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3475.png"
+  },
+  "BMW M3 Sport Evolution": {
+    "id": "car3344",
+    "file": "assets/cars/car3344.png",
+    "officialName": "BMW M3 Sport Evolution '89",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3344.png"
+  },
+  "BMW M6 GT3": {
+    "id": "car3218",
+    "file": "assets/cars/car3218.png",
+    "officialName": "BMW M6 GT3 Endurance Model '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3218.png"
+  },
+  "Bugatti Chiron": {
+    "id": "car3473",
+    "file": "assets/cars/car3473.png",
+    "officialName": "Bugatti Chiron '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3473.png"
+  },
+  "Bugatti Veyron Gr.4": {
+    "id": "car3246",
+    "file": "assets/cars/car3246.png",
+    "officialName": "Bugatti Veyron Gr.4",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3246.png"
+  },
+  "Chevrolet Camaro ZL1": {
+    "id": "car3387",
+    "file": "assets/cars/car3387.png",
+    "officialName": "Chevrolet Camaro ZL1 1LE Package '18",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3387.png"
+  },
+  "Chevrolet Corvette C7 Gr.3": {
+    "id": "car2183",
+    "file": "assets/cars/car2183.png",
+    "officialName": "Chevrolet Corvette C7 Gr.3",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2183.png"
+  },
+  "Chevrolet Corvette C8": {
+    "id": "car3518",
+    "file": "assets/cars/car3518.png",
+    "officialName": "Chevrolet Corvette C8 Stingray '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3518.png"
+  },
+  "Chevrolet Corvette C8.R style Gr.3": {
+    "id": "car2183",
+    "file": "assets/cars/car2183.png",
+    "officialName": "Chevrolet Corvette C7 Gr.3",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2183.png"
+  },
+  "Chevrolet Corvette ZR1": {
+    "id": "car3449",
+    "file": "assets/cars/car3449.png",
+    "officialName": "Chevrolet Corvette C7 ZR1 '19",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3449.png"
+  },
+  "Dodge SRT Tomahawk": {
+    "id": "car2108",
+    "file": "assets/cars/car2108.png",
+    "officialName": "Dodge SRT Tomahawk X Vision Gran Turismo",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2108.png"
+  },
+  "Dodge Viper": {
+    "id": "car1956",
+    "file": "assets/cars/car1956.png",
+    "officialName": "Dodge Viper GTS '13",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1956.png"
+  },
+  "Dodge Viper GTS": {
+    "id": "car1956",
+    "file": "assets/cars/car1956.png",
+    "officialName": "Dodge Viper GTS '13",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1956.png"
+  },
+  "Ferrari 296 GT3": {
+    "id": "car3588",
+    "file": "assets/cars/car3588.png",
+    "officialName": "Ferrari 296 GT3 '23",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3588.png"
+  },
+  "Ferrari 458 Italia Gr.3": {
+    "id": "car2158",
+    "file": "assets/cars/car2158.png",
+    "officialName": "Ferrari 458 Italia GT3 '13",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2158.png"
+  },
+  "Ford Focus Gr.B": {
+    "id": "car3264",
+    "file": "assets/cars/car3264.png",
+    "officialName": "Ford Focus Gr.B Rally Car",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3264.png"
+  },
+  "Ford GT": {
+    "id": "car1426",
+    "file": "assets/cars/car1426.png",
+    "officialName": "Ford GT '06",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1426.png"
+  },
+  "Ford GT Race Car": {
+    "id": "car3436",
+    "file": "assets/cars/car3436.png",
+    "officialName": "Ford GT Race Car '18",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3436.png"
+  },
+  "Ford Mustang Boss 429": {
+    "id": "car3487",
+    "file": "assets/cars/car3487.png",
+    "officialName": "Ford Mustang Boss 429 '69",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3487.png"
+  },
+  "Ford Mustang Gr.3": {
+    "id": "car2159",
+    "file": "assets/cars/car2159.png",
+    "officialName": "Ford Mustang Gr.3",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2159.png"
+  },
+  "Holden-inspired Chevrolet Camaro ZL1": {
+    "id": "car3387",
+    "file": "assets/cars/car3387.png",
+    "officialName": "Chevrolet Camaro ZL1 1LE Package '18",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3387.png"
+  },
+  "Honda Beat": {
+    "id": "car137",
+    "file": "assets/cars/car137.png",
+    "officialName": "Honda Beat '91",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car137.png"
+  },
+  "Honda Civic Type R": {
+    "id": "car3536",
+    "file": "assets/cars/car3536.png",
+    "officialName": "Honda Civic Type R (FL5) '22",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3536.png"
+  },
+  "Honda NSX CONCEPT-GT": {
+    "id": "car3348",
+    "file": "assets/cars/car3348.png",
+    "officialName": "Honda NSX CONCEPT-GT '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3348.png"
+  },
+  "Honda NSX Gr.3": {
+    "id": "car3235",
+    "file": "assets/cars/car3235.png",
+    "officialName": "Honda NSX Gr.3",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3235.png"
+  },
+  "Honda NSX Gr.4": {
+    "id": "car3251",
+    "file": "assets/cars/car3251.png",
+    "officialName": "Honda NSX Gr.4",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3251.png"
+  },
+  "Jaguar E-Type": {
+    "id": "car3361",
+    "file": "assets/cars/car3361.png",
+    "officialName": "Jaguar E-type Coupé '61",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3361.png"
+  },
+  "Jaguar F-Type Gr.3": {
+    "id": "car2184",
+    "file": "assets/cars/car2184.png",
+    "officialName": "Jaguar F-type Gr.3",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2184.png"
+  },
+  "Lamborghini Huracan Gr.3": {
+    "id": "car2177",
+    "file": "assets/cars/car2177.png",
+    "officialName": "Lamborghini Huracán GT3 '15",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2177.png"
+  },
+  "Lexus LC500": {
+    "id": "car3227",
+    "file": "assets/cars/car3227.png",
+    "officialName": "Lexus LC500 '17",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3227.png"
+  },
+  "Lexus RC F GT3": {
+    "id": "car3340",
+    "file": "assets/cars/car3340.png",
+    "officialName": "Lexus RC F GT3 '17",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3340.png"
+  },
+  "Mazda 787B": {
+    "id": "car296",
+    "file": "assets/cars/car296.png",
+    "officialName": "Mazda 787B '91",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car296.png"
+  },
+  "Mazda RX-7": {
+    "id": "car205",
+    "file": "assets/cars/car205.png",
+    "officialName": "Mazda RX-7 Spirit R Type A (FD) '02",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car205.png"
+  },
+  "Mazda RX-Vision GT3": {
+    "id": "car3419",
+    "file": "assets/cars/car3419.png",
+    "officialName": "MAZDA RX-VISION GT3 CONCEPT",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3419.png"
+  },
+  "Mazda Roadster": {
+    "id": "car2148",
+    "file": "assets/cars/car2148.png",
+    "officialName": "Mazda Roadster S (ND) '15",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2148.png"
+  },
+  "Mazda Roadster Touring Car": {
+    "id": "car1746",
+    "file": "assets/cars/car1746.png",
+    "officialName": "Mazda Roadster Touring Car",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1746.png"
+  },
+  "McLaren 650S Gr.3": {
+    "id": "car2182",
+    "file": "assets/cars/car2182.png",
+    "officialName": "McLaren 650S GT3 '15",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2182.png"
+  },
+  "Mercedes-AMG GT Black Series": {
+    "id": "car3485",
+    "file": "assets/cars/car3485.png",
+    "officialName": "Mercedes-AMG GT Black Series '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3485.png"
+  },
+  "Mercedes-AMG GT3": {
+    "id": "car3531",
+    "file": "assets/cars/car3531.png",
+    "officialName": "Mercedes-AMG GT3 '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3531.png"
+  },
+  "Mitsubishi GTO Twin Turbo": {
+    "id": "car3384",
+    "file": "assets/cars/car3384.png",
+    "officialName": "Mitsubishi GTO Twin Turbo '91",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3384.png"
+  },
+  "Mitsubishi Lancer Evolution": {
+    "id": "car2150",
+    "file": "assets/cars/car2150.png",
+    "officialName": "Mitsubishi Lancer Evolution Final Edition '15",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2150.png"
+  },
+  "Mitsubishi Lancer Evolution Final": {
+    "id": "car2150",
+    "file": "assets/cars/car2150.png",
+    "officialName": "Mitsubishi Lancer Evolution Final Edition '15",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2150.png"
+  },
+  "Mitsubishi Lancer Gr.B": {
+    "id": "car3230",
+    "file": "assets/cars/car3230.png",
+    "officialName": "Mitsubishi Lancer Evolution Final Edition Gr.B Rally Car",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3230.png"
+  },
+  "Nissan GT-R GT500": {
+    "id": "car3350",
+    "file": "assets/cars/car3350.png",
+    "officialName": "Nissan GT-R NISMO GT500 '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3350.png"
+  },
+  "Nissan GT-R NISMO": {
+    "id": "car3345",
+    "file": "assets/cars/car3345.png",
+    "officialName": "Nissan GT-R NISMO '17",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3345.png"
+  },
+  "Nissan GT-R NISMO GT3": {
+    "id": "car3450",
+    "file": "assets/cars/car3450.png",
+    "officialName": "Nissan GT-R NISMO GT3 '18",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3450.png"
+  },
+  "Nissan Skyline GT-R R34": {
+    "id": "car210",
+    "file": "assets/cars/car210.png",
+    "officialName": "Nissan Skyline GT-R V･spec II Nür (R34) '02",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car210.png"
+  },
+  "Nissan Z Performance": {
+    "id": "car3504",
+    "file": "assets/cars/car3504.png",
+    "officialName": "Nissan Z Performance '23",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3504.png"
+  },
+  "Peugeot 205 Turbo 16": {
+    "id": "car105",
+    "file": "assets/cars/car105.png",
+    "officialName": "Peugeot 205 Turbo 16 Evolution 2 '86",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car105.png"
+  },
+  "Porsche 911 GT3": {
+    "id": "car3359",
+    "file": "assets/cars/car3359.png",
+    "officialName": "Porsche 911 GT3 (997) '09",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3359.png"
+  },
+  "Porsche 911 GT3 RS": {
+    "id": "car3268",
+    "file": "assets/cars/car3268.png",
+    "officialName": "Porsche 911 GT3 RS (991) '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3268.png"
+  },
+  "Porsche 911 RSR": {
+    "id": "car3311",
+    "file": "assets/cars/car3311.png",
+    "officialName": "Porsche 911 RSR (991) '17",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3311.png"
+  },
+  "Porsche 911 Turbo": {
+    "id": "car3558",
+    "file": "assets/cars/car3558.png",
+    "officialName": "Porsche 911 Turbo S (992) '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3558.png"
+  },
+  "Porsche 919 Hybrid": {
+    "id": "car3313",
+    "file": "assets/cars/car3313.png",
+    "officialName": "Porsche 919 Hybrid '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3313.png"
+  },
+  "Porsche Cayman GT4": {
+    "id": "car3488",
+    "file": "assets/cars/car3488.png",
+    "officialName": "Porsche Cayman GT4 '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3488.png"
+  },
+  "Porsche Cayman GT4 Clubsport": {
+    "id": "car3310",
+    "file": "assets/cars/car3310.png",
+    "officialName": "Porsche Cayman GT4 Clubsport '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3310.png"
+  },
+  "Renault Clio R.S.": {
+    "id": "car3353",
+    "file": "assets/cars/car3353.png",
+    "officialName": "Renault Sport Clio R.S. 220 EDC Trophy '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3353.png"
+  },
+  "Renault Megane Trophy": {
+    "id": "car1563",
+    "file": "assets/cars/car1563.png",
+    "officialName": "Renault Sport Mégane Trophy '11",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car1563.png"
+  },
+  "Shelby Cobra": {
+    "id": "car315",
+    "file": "assets/cars/car315.png",
+    "officialName": "Shelby Cobra 427 '66",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car315.png"
+  },
+  "Shelby GT350R": {
+    "id": "car3391",
+    "file": "assets/cars/car3391.png",
+    "officialName": "Ford Shelby GT350R '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3391.png"
+  },
+  "Subaru BRZ GT300": {
+    "id": "car3474",
+    "file": "assets/cars/car3474.png",
+    "officialName": "Subaru BRZ GT300 '21",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3474.png"
+  },
+  "Subaru WRX Gr.4": {
+    "id": "car3261",
+    "file": "assets/cars/car3261.png",
+    "officialName": "Subaru WRX Gr.4",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3261.png"
+  },
+  "Subaru WRX Gr.B": {
+    "id": "car3232",
+    "file": "assets/cars/car3232.png",
+    "officialName": "Subaru WRX Gr.B Rally Car",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3232.png"
+  },
+  "Toyota 86 Gr.4": {
+    "id": "car3262",
+    "file": "assets/cars/car3262.png",
+    "officialName": "TOYOTA 86 Gr.4",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3262.png"
+  },
+  "Toyota 86 Gr.B": {
+    "id": "car3265",
+    "file": "assets/cars/car3265.png",
+    "officialName": "TOYOTA 86 Gr.B Rally Car",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3265.png"
+  },
+  "Toyota Celica GT-Four Rally Car": {
+    "id": "car781",
+    "file": "assets/cars/car781.png",
+    "officialName": "Toyota Celica GT-FOUR Rally Car (ST205) '95",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car781.png"
+  },
+  "Toyota GR Supra RZ": {
+    "id": "car3418",
+    "file": "assets/cars/car3418.png",
+    "officialName": "Toyota GR Supra RZ '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3418.png"
+  },
+  "Toyota GR Supra Racing Concept": {
+    "id": "car3352",
+    "file": "assets/cars/car3352.png",
+    "officialName": "Toyota GR Supra Racing Concept '18",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3352.png"
+  },
+  "Toyota GR Yaris": {
+    "id": "car3451",
+    "file": "assets/cars/car3451.png",
+    "officialName": "Toyota GR Yaris 1st Edition RZ \"High performance\" '20",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3451.png"
+  },
+  "Toyota GR010 HYBRID": {
+    "id": "car3499",
+    "file": "assets/cars/car3499.png",
+    "officialName": "TOYOTA GR010 HYBRID '21",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3499.png"
+  },
+  "Toyota GR86": {
+    "id": "car3481",
+    "file": "assets/cars/car3481.png",
+    "officialName": "Toyota GR86 RZ '21",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car3481.png"
+  },
+  "Toyota S-FR Racing Concept": {
+    "id": "car2178",
+    "file": "assets/cars/car2178.png",
+    "officialName": "TOYOTA S-FR Racing Concept '16",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car2178.png"
+  },
+  "Toyota Supra RZ": {
+    "id": "car82",
+    "file": "assets/cars/car82.png",
+    "officialName": "Toyota Supra RZ '97",
+    "source": "https://www.gran-turismo.com/common/dist/gt7/carlist/car_thumbnails/car82.png"
+  }
+}
