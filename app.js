@@ -679,6 +679,18 @@ detailEl.addEventListener("click", (event) => {
   handleTrainingAction(actionButton.dataset.trainingAction);
 });
 
+detailEl.addEventListener("input", (event) => {
+  const input = event.target.closest("[data-lap-part]");
+  if (!input || !detailEl.contains(input)) return;
+  const maxLength = Number(input.getAttribute("maxlength") ?? 2);
+  input.value = input.value.replace(/\D/g, "").slice(0, maxLength);
+  if (input.value.length >= maxLength) {
+    const parts = [...detailEl.querySelectorAll("[data-lap-part]")];
+    const index = parts.indexOf(input);
+    parts[index + 1]?.focus();
+  }
+});
+
 trainingSummaryEl?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-dashboard-track]");
   if (!button) return;
@@ -934,6 +946,7 @@ function renderTrainingCard(track, official, activeLayout) {
   const gap = best ? best - range.target : null;
   const status = getTrainingStatusMeta(record);
   const favoriteLabel = record.favorite ? "取消收藏" : "收藏布局";
+  const lapParts = splitLapTime(best);
   return `
     <section class="training-card" aria-label="布局训练卡片">
       <div class="training-card-head">
@@ -959,9 +972,16 @@ function renderTrainingCard(track, official, activeLayout) {
               .join("")}
           </select>
         </label>
-        <label>
+        <label class="lap-time-field">
           <span>最佳圈速</span>
-          <input id="bestLapInput" type="text" inputmode="decimal" value="${best ? formatLapTime(best) : ""}" placeholder="例：1:32.845" />
+          <div class="lap-time-input" aria-label="最佳圈速，按分钟、秒、毫秒输入">
+            <input id="bestLapMinutes" data-lap-part="minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.minutes}" placeholder="00" aria-label="分钟" />
+            <b>:</b>
+            <input id="bestLapSeconds" data-lap-part="seconds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.seconds}" placeholder="00" aria-label="秒" />
+            <b>:</b>
+            <input id="bestLapMillis" data-lap-part="millis" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${lapParts.millis}" placeholder="000" aria-label="毫秒" />
+          </div>
+          <small class="lap-time-hint">只填数字，自动组成 分:秒:毫秒</small>
         </label>
         <label class="training-notes-field">
           <span>练习笔记</span>
@@ -1168,15 +1188,14 @@ function handleTrainingAction(action) {
     return;
   }
   if (action === "save-training") {
-    const bestInput = document.querySelector("#bestLapInput")?.value.trim() ?? "";
-    const bestLapSeconds = bestInput ? parseLapTime(bestInput) : null;
-    if (bestInput && !bestLapSeconds) {
-      window.alert("圈速格式不正确，可输入 1:32.845 或 92.845。");
+    const lapInput = getSegmentedLapTime();
+    if (lapInput.error) {
+      window.alert(lapInput.error);
       return;
     }
-    const nextStatus = record.status === "not-started" && (bestLapSeconds || getTrainingNotes()) ? "active" : record.status;
+    const nextStatus = record.status === "not-started" && (lapInput.seconds || getTrainingNotes()) ? "active" : record.status;
     saveTrainingRecord(activeLayout.id, {
-      bestLapSeconds,
+      bestLapSeconds: lapInput.seconds,
       targetDifficulty: getFormTargetDifficulty(),
       notes: getTrainingNotes(),
       status: nextStatus,
@@ -1191,6 +1210,30 @@ function getFormTargetDifficulty() {
 
 function getTrainingNotes() {
   return (document.querySelector("#trainingNotes")?.value ?? "").trim().slice(0, 500);
+}
+
+function getSegmentedLapTime() {
+  const minutesText = document.querySelector("#bestLapMinutes")?.value.trim() ?? "";
+  const secondsText = document.querySelector("#bestLapSeconds")?.value.trim() ?? "";
+  const millisText = document.querySelector("#bestLapMillis")?.value.trim() ?? "";
+  const hasValue = Boolean(minutesText || secondsText || millisText);
+  if (!hasValue) return { seconds: null, error: "" };
+
+  const minutes = Number(minutesText || 0);
+  const seconds = Number(secondsText || 0);
+  const millis = Number((millisText || "0").padStart(3, "0"));
+  if ([minutes, seconds, millis].some((value) => !Number.isFinite(value))) {
+    return { seconds: null, error: "圈速只能填写数字。" };
+  }
+  if (seconds > 59) {
+    return { seconds: null, error: "秒数需要在 00 到 59 之间。" };
+  }
+  if (millis > 999) {
+    return { seconds: null, error: "毫秒需要在 000 到 999 之间。" };
+  }
+  const total = minutes * 60 + seconds + millis / 1000;
+  if (total <= 0) return { seconds: null, error: "圈速需要大于 00:00:000。" };
+  return { seconds: Number(total.toFixed(3)), error: "" };
 }
 
 function getTargetDifficulty(record) {
@@ -1229,6 +1272,28 @@ function parseLapTime(value) {
   const hours = parts.pop() ?? 0;
   const total = hours * 3600 + minutes * 60 + seconds;
   return total > 0 ? Number(total.toFixed(3)) : null;
+}
+
+function splitLapTime(totalSeconds) {
+  if (typeof totalSeconds !== "number" || Number.isNaN(totalSeconds)) {
+    return { minutes: "", seconds: "", millis: "" };
+  }
+  let minutes = Math.floor(totalSeconds / 60);
+  let seconds = Math.floor(totalSeconds - minutes * 60);
+  let millis = Math.round((totalSeconds - minutes * 60 - seconds) * 1000);
+  if (millis >= 1000) {
+    millis = 0;
+    seconds += 1;
+  }
+  if (seconds >= 60) {
+    seconds = 0;
+    minutes += 1;
+  }
+  return {
+    minutes: String(minutes).padStart(2, "0"),
+    seconds: String(seconds).padStart(2, "0"),
+    millis: String(millis).padStart(3, "0"),
+  };
 }
 
 function formatLapTime(totalSeconds) {

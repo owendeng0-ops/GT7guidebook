@@ -994,6 +994,32 @@ button:hover {
   gap: 6px;
 }
 
+.lap-time-input {
+  display: grid;
+  grid-template-columns: minmax(42px, 0.9fr) auto minmax(42px, 0.9fr) auto minmax(56px, 1.1fr);
+  gap: 6px;
+  align-items: center;
+}
+
+.lap-time-input input {
+  min-width: 0;
+  padding: 0 8px;
+  text-align: center;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.lap-time-input b {
+  color: var(--blue);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.lap-time-hint {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
 .training-actions {
   display: flex;
   flex-wrap: wrap;
