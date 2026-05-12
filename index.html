@@ -35,6 +35,14 @@
     </header>
 
     <main>
+      <section class="training-dashboard" aria-label="训练概览">
+        <div class="section-title">
+          <h2>训练仪表盘</h2>
+          <span id="trainingUpdated">本地记录</span>
+        </div>
+        <div id="trainingSummary" class="training-summary"></div>
+      </section>
+
       <section class="control-band" aria-label="筛选赛道">
         <div class="search-box">
           <label for="searchInput">搜索</label>
@@ -51,6 +59,13 @@
           <button class="chip" data-difficulty="新手">新手</button>
           <button class="chip" data-difficulty="进阶">进阶</button>
           <button class="chip" data-difficulty="高手">高手</button>
+        </div>
+        <div class="filter-group training-filter" aria-label="训练状态">
+          <button class="chip active" data-training-filter="all">全部状态</button>
+          <button class="chip" data-training-filter="not-started">未开始</button>
+          <button class="chip" data-training-filter="active">练习中</button>
+          <button class="chip" data-training-filter="complete">已达标</button>
+          <button class="chip" data-training-filter="favorite">收藏</button>
         </div>
       </section>
 

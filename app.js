@@ -591,9 +591,18 @@ const officialMapIds = new Set([
   "fe330b",
 ]);
 
+const TRAINING_STORAGE_KEY = "gt7-track-atlas-training-v1";
+const trainingStatuses = {
+  "not-started": "未开始",
+  active: "练习中",
+  complete: "已达标",
+};
+const defaultTargetDifficulty = "进阶";
+
 const state = {
   region: "all",
   difficulty: "all",
+  trainingFilter: "all",
   query: "",
   selected: tracks[0].name,
   selectedLayout: "",
@@ -603,12 +612,16 @@ const layoutAccentColors = ["#ef4652", "#42a5ff", "#20d7a3", "#f7c948", "#b56bff
 const vehicleAssets = window.VehicleAssets ?? {};
 const layoutAssets = window.LayoutAssets ?? {};
 const layoutVerification = window.LayoutVerification ?? {};
+const trainingData = loadTrainingData();
+const allLayoutEntries = buildAllLayoutEntries();
 
 const listEl = document.querySelector("#trackList");
 const detailEl = document.querySelector("#trackDetail");
 const resultCountEl = document.querySelector("#resultCount");
 const searchInput = document.querySelector("#searchInput");
 const trackCountEl = document.querySelector("#trackCount");
+const trainingSummaryEl = document.querySelector("#trainingSummary");
+const trainingUpdatedEl = document.querySelector("#trainingUpdated");
 const trackByName = new Map(tracks.map((track) => [track.name, track]));
 const trackButtons = new Map();
 let pendingFilterFrame = 0;
@@ -627,7 +640,16 @@ document.querySelectorAll("[data-difficulty]").forEach((button) => {
   button.addEventListener("click", () => {
     state.difficulty = button.dataset.difficulty;
     setActive("[data-difficulty]", button);
+    renderTrainingDashboard();
     renderDetailOnly();
+  });
+});
+
+document.querySelectorAll("[data-training-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.trainingFilter = button.dataset.trainingFilter;
+    setActive("[data-training-filter]", button);
+    applyFilters();
   });
 });
 
@@ -643,10 +665,30 @@ listEl.addEventListener("click", (event) => {
 });
 
 detailEl.addEventListener("click", (event) => {
-  const button = event.target.closest(".layout-pill");
-  if (!button || !detailEl.contains(button)) return;
-  if (state.selectedLayout === button.dataset.layoutId) return;
-  state.selectedLayout = button.dataset.layoutId;
+  const layoutButton = event.target.closest("[data-layout-id]");
+  if (layoutButton && detailEl.contains(layoutButton)) {
+    if (state.selectedLayout === layoutButton.dataset.layoutId) return;
+    state.selectedLayout = layoutButton.dataset.layoutId;
+    updateUrlHash();
+    renderDetailOnly();
+    return;
+  }
+
+  const actionButton = event.target.closest("[data-training-action]");
+  if (!actionButton || !detailEl.contains(actionButton)) return;
+  handleTrainingAction(actionButton.dataset.trainingAction);
+});
+
+trainingSummaryEl?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-dashboard-track]");
+  if (!button) return;
+  selectTrack(button.dataset.dashboardTrack, button.dataset.dashboardLayout);
+});
+
+window.addEventListener("hashchange", () => {
+  applyHashRoute();
+  updateActiveTrackButton();
+  applyFilters();
   renderDetailOnly();
 });
 
@@ -658,6 +700,7 @@ function setActive(selector, activeButton) {
 function getFilteredTracks() {
   return tracks.filter((track) => {
     const regionMatch = state.region === "all" || track.region === state.region;
+    const official = getOfficialTrack(track);
     const queryHaystack = [
       track.name,
       track.region,
@@ -667,11 +710,13 @@ function getFilteredTracks() {
       track.tune,
       ...track.focus,
       ...track.cars,
+      ...(official?.layoutNames ?? []),
     ]
       .join(" ")
       .toLowerCase();
     const queryMatch = !state.query || queryHaystack.includes(state.query);
-    return regionMatch && queryMatch;
+    const trainingMatch = state.trainingFilter === "all" || trackMatchesTrainingFilter(track, state.trainingFilter);
+    return regionMatch && queryMatch && trainingMatch;
   });
 }
 
@@ -695,6 +740,7 @@ function applyFilters() {
   if (!filteredTracks.some((track) => track.name === state.selected)) {
     state.selected = filteredTracks[0]?.name ?? "";
     state.selectedLayout = "";
+    updateUrlHash();
   }
 
   resultCountEl.textContent = `${filteredTracks.length} 条结果`;
@@ -705,15 +751,19 @@ function applyFilters() {
   });
 
   listEl.classList.toggle("is-empty", filteredTracks.length === 0);
+  updateTrackTrainingBadges();
   updateActiveTrackButton();
+  renderTrainingDashboard();
   renderDetailOnly();
 }
 
-function selectTrack(name) {
+function selectTrack(name, layoutId = "") {
   if (!trackByName.has(name)) return;
-  if (state.selected === name) return;
+  if (state.selected === name && (!layoutId || state.selectedLayout === layoutId)) return;
   state.selected = name;
-  state.selectedLayout = "";
+  const official = getOfficialTrack(trackByName.get(name));
+  state.selectedLayout = official?.layoutDetails.some((layout) => layout.id === layoutId) ? layoutId : "";
+  updateUrlHash();
   updateActiveTrackButton();
   renderDetailOnly();
 }
@@ -733,13 +783,17 @@ function renderDetailOnly() {
 function renderTrackButton(track) {
   const active = track.name === state.selected ? " active" : "";
   const official = getOfficialTrack(track);
+  const summary = getTrackTrainingSummary(track);
   return `
     <button class="track-button${active}" data-track="${track.name}">
       <span>
         <strong>${track.name}</strong>
         <small>${regionName(track.region)} · ${track.country} · ${track.type}</small>
       </span>
-      <span class="tag">${official?.layouts ?? track.layouts} 布局</span>
+      <span class="track-button-meta">
+        <span class="tag">${official?.layouts ?? track.layouts} 布局</span>
+        <span class="training-status-badge ${summary.className}" data-track-training="${track.name}">${summary.label}</span>
+      </span>
     </button>
   `;
 }
@@ -783,7 +837,9 @@ function renderDetail(track) {
       </figure>
 
       ${official ? renderLayoutVerification(activeLayout) : ""}
+      ${official && activeLayout ? renderTrainingCard(track, official, activeLayout) : ""}
       ${official ? renderOfficialStats(official, activeLayout) : ""}
+      ${official ? renderLayoutComparison(track, official, activeLayout) : ""}
 
       <div class="detail-grid">
         <section class="info-block">
@@ -811,27 +867,25 @@ function renderDetail(track) {
               <th>通过标准</th>
             </tr>
           </thead>
-          <tbody>${renderPaceRows(track)}</tbody>
+          <tbody>${renderPaceRows(track, official, activeLayout)}</tbody>
         </table>
       </section>
     </article>
   `;
 }
 
-function renderPaceRows(track) {
+function renderPaceRows(track, official, activeLayout) {
   const difficulties = state.difficulty === "all" ? Object.keys(difficultyMultipliers) : [state.difficulty];
   return difficulties
     .map((difficulty) => {
-      const target = Math.round(track.baseLap * difficultyMultipliers[difficulty]);
-      const lower = target - (difficulty === "高手" ? 2 : 4);
-      const upper = target + (difficulty === "高手" ? 2 : 5);
+      const range = getTargetRange(track, official, activeLayout, difficulty);
       const cars = getCarsForDifficulty(track, difficulty);
       const standard = getStandard(difficulty);
       return `
         <tr>
           <td class="difficulty ${difficultyClasses[difficulty]}">${difficulty}</td>
-          <td>${formatTime(lower)} - ${formatTime(upper)}</td>
-          <td>${renderVehicleChoices(cars)}</td>
+          <td>${formatTime(range.lower)} - ${formatTime(range.upper)}</td>
+          <td>${renderVehicleChoices(cars, track, difficulty)}</td>
           <td>${standard}</td>
         </tr>
       `;
@@ -845,17 +899,18 @@ function getCarsForDifficulty(track, difficulty) {
   return track.cars;
 }
 
-function renderVehicleChoices(cars) {
+function renderVehicleChoices(cars, track, difficulty) {
   if (!cars.length) {
-    return `<span class="vehicle-card is-text-only"><span class="vehicle-no-image">GT7</span><span>稳定四驱或低马力车</span></span>`;
+    return `<span class="vehicle-card is-text-only"><span class="vehicle-no-image">GT7</span><span><strong>稳定四驱或低马力车</strong><small class="vehicle-reason">优先稳定与容错，先把练习节奏固定。</small></span></span>`;
   }
 
-  return `<div class="vehicle-stack">${cars.map(renderVehicleChoice).join("")}</div>`;
+  return `<div class="vehicle-stack">${cars.map((label) => renderVehicleChoice(label, track, difficulty)).join("")}</div>`;
 }
 
-function renderVehicleChoice(label) {
+function renderVehicleChoice(label, track, difficulty) {
   const asset = vehicleAssets[label];
   const title = escapeHtml(asset?.officialName ?? label);
+  const reason = getVehicleReason(label, track, difficulty);
   return `
     <span class="vehicle-card${asset ? "" : " is-text-only"}" title="${title}">
       ${
@@ -863,8 +918,113 @@ function renderVehicleChoice(label) {
           ? `<img src="${asset.src}" alt="${title}" loading="lazy" decoding="async" />`
           : `<span class="vehicle-no-image">GT7</span>`
       }
-      <span>${escapeHtml(label)}</span>
+      <span>
+        <strong>${escapeHtml(label)}</strong>
+        <small class="vehicle-reason">${escapeHtml(reason)}</small>
+      </span>
     </span>
+  `;
+}
+
+function renderTrainingCard(track, official, activeLayout) {
+  const record = getTrainingRecord(activeLayout.id);
+  const targetDifficulty = getTargetDifficulty(record);
+  const range = getTargetRange(track, official, activeLayout, targetDifficulty);
+  const best = typeof record.bestLapSeconds === "number" ? record.bestLapSeconds : null;
+  const gap = best ? best - range.target : null;
+  const status = getTrainingStatusMeta(record);
+  const favoriteLabel = record.favorite ? "取消收藏" : "收藏布局";
+  return `
+    <section class="training-card" aria-label="布局训练卡片">
+      <div class="training-card-head">
+        <div>
+          <small>当前训练布局</small>
+          <h3>${escapeHtml(activeLayout.name)}</h3>
+          <p>目标难度：${targetDifficulty} · 目标圈速 ${formatTime(range.lower)} - ${formatTime(range.upper)}</p>
+        </div>
+        <span class="training-status-badge ${status.className}">${status.label}</span>
+      </div>
+      <div class="training-metrics">
+        <div><small>目标中位</small><strong>${formatTime(range.target)}</strong></div>
+        <div><small>个人最佳</small><strong>${best ? formatLapTime(best) : "未记录"}</strong></div>
+        <div><small>目标差距</small><strong class="${gap !== null && gap <= 0 ? "is-ahead" : ""}">${formatGap(gap)}</strong></div>
+        <div><small>本地状态</small><strong>${status.label}</strong></div>
+      </div>
+      <div class="training-form">
+        <label>
+          <span>目标难度</span>
+          <select id="targetDifficultySelect">
+            ${Object.keys(difficultyMultipliers)
+              .map((difficulty) => `<option value="${difficulty}"${difficulty === targetDifficulty ? " selected" : ""}>${difficulty}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label>
+          <span>最佳圈速</span>
+          <input id="bestLapInput" type="text" inputmode="decimal" value="${best ? formatLapTime(best) : ""}" placeholder="例：1:32.845" />
+        </label>
+        <label class="training-notes-field">
+          <span>练习笔记</span>
+          <textarea id="trainingNotes" rows="2" placeholder="记录刹车点、失误弯角或车辆设置">${escapeHtml(record.notes ?? "")}</textarea>
+        </label>
+      </div>
+      <div class="training-actions">
+        <button type="button" data-training-action="save-training">保存记录</button>
+        <button type="button" data-training-action="set-current">设为当前训练</button>
+        <button type="button" data-training-action="complete">标记已达标</button>
+        <button type="button" data-training-action="toggle-favorite">${favoriteLabel}</button>
+        <button type="button" data-training-action="reset">重置记录</button>
+      </div>
+    </section>
+  `;
+}
+
+function renderLayoutComparison(track, official, activeLayout) {
+  if (!official.layoutDetails?.length || official.layoutDetails.length < 2) return "";
+  const rows = official.layoutDetails
+    .map((layout, index) => {
+      const record = getTrainingRecord(layout.id);
+      const status = getTrainingStatusMeta(record);
+      const active = layout.id === activeLayout?.id ? " active" : "";
+      const color = layoutAccentColors[index % layoutAccentColors.length];
+      return `
+        <tr class="${active ? "is-active" : ""}">
+          <td>
+            <button class="comparison-layout-button${active}" type="button" data-layout-id="${layout.id}" style="--layout-color: ${color};">
+              ${escapeHtml(layout.name)}
+            </button>
+          </td>
+          <td>${layout.length}</td>
+          <td>${layout.corners}</td>
+          <td>${layout.straight}</td>
+          <td>${typeof record.bestLapSeconds === "number" ? formatLapTime(record.bestLapSeconds) : "未记录"}</td>
+          <td><span class="training-status-badge ${status.className}">${status.label}</span></td>
+        </tr>
+      `;
+    })
+    .join("");
+  return `
+    <section class="layout-comparison" aria-label="赛道布局对比">
+      <div class="section-title inline-title">
+        <h3>布局训练对比</h3>
+        <span>点击布局切换地图与训练数据</span>
+      </div>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>布局</th>
+              <th>长度</th>
+              <th>弯角</th>
+              <th>最长直道</th>
+              <th>个人最佳</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
   `;
 }
 
@@ -916,6 +1076,311 @@ function renderOfficialStats(official, activeLayout) {
       ${layoutItems}
     </section>
   `;
+}
+
+function loadTrainingData() {
+  try {
+    const raw = localStorage.getItem(TRAINING_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.entries(parsed).reduce((memo, [layoutId, record]) => {
+      if (!layoutId || !record || typeof record !== "object") return memo;
+      memo[layoutId] = sanitizeTrainingRecord(record);
+      return memo;
+    }, {});
+  } catch {
+    return {};
+  }
+}
+
+function sanitizeTrainingRecord(record) {
+  const status = Object.hasOwn(trainingStatuses, record.status) ? record.status : "not-started";
+  const targetDifficulty = Object.hasOwn(difficultyMultipliers, record.targetDifficulty) ? record.targetDifficulty : defaultTargetDifficulty;
+  const bestLapSeconds = Number(record.bestLapSeconds);
+  return {
+    bestLapSeconds: Number.isFinite(bestLapSeconds) && bestLapSeconds > 0 ? bestLapSeconds : null,
+    targetDifficulty,
+    status,
+    favorite: Boolean(record.favorite),
+    notes: typeof record.notes === "string" ? record.notes.slice(0, 500) : "",
+    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : "",
+  };
+}
+
+function persistTrainingData() {
+  localStorage.setItem(TRAINING_STORAGE_KEY, JSON.stringify(trainingData));
+}
+
+function getTrainingRecord(layoutId) {
+  return {
+    bestLapSeconds: null,
+    targetDifficulty: defaultTargetDifficulty,
+    status: "not-started",
+    favorite: false,
+    notes: "",
+    updatedAt: "",
+    ...(trainingData[layoutId] ?? {}),
+  };
+}
+
+function saveTrainingRecord(layoutId, patch) {
+  trainingData[layoutId] = sanitizeTrainingRecord({
+    ...getTrainingRecord(layoutId),
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  });
+  persistTrainingData();
+  updateAfterTrainingChange();
+}
+
+function resetTrainingRecord(layoutId) {
+  delete trainingData[layoutId];
+  persistTrainingData();
+  updateAfterTrainingChange();
+}
+
+function updateAfterTrainingChange() {
+  applyFilters();
+}
+
+function handleTrainingAction(action) {
+  const track = trackByName.get(state.selected);
+  const official = track ? getOfficialTrack(track) : null;
+  const activeLayout = getActiveLayout(official);
+  if (!activeLayout) return;
+
+  const record = getTrainingRecord(activeLayout.id);
+  if (action === "reset") {
+    resetTrainingRecord(activeLayout.id);
+    return;
+  }
+  if (action === "set-current") {
+    saveTrainingRecord(activeLayout.id, { status: "active", targetDifficulty: getFormTargetDifficulty() });
+    return;
+  }
+  if (action === "complete") {
+    saveTrainingRecord(activeLayout.id, { status: "complete", targetDifficulty: getFormTargetDifficulty() });
+    return;
+  }
+  if (action === "toggle-favorite") {
+    saveTrainingRecord(activeLayout.id, { favorite: !record.favorite, targetDifficulty: getFormTargetDifficulty() });
+    return;
+  }
+  if (action === "save-training") {
+    const bestInput = document.querySelector("#bestLapInput")?.value.trim() ?? "";
+    const bestLapSeconds = bestInput ? parseLapTime(bestInput) : null;
+    if (bestInput && !bestLapSeconds) {
+      window.alert("圈速格式不正确，可输入 1:32.845 或 92.845。");
+      return;
+    }
+    const nextStatus = record.status === "not-started" && (bestLapSeconds || getTrainingNotes()) ? "active" : record.status;
+    saveTrainingRecord(activeLayout.id, {
+      bestLapSeconds,
+      targetDifficulty: getFormTargetDifficulty(),
+      notes: getTrainingNotes(),
+      status: nextStatus,
+    });
+  }
+}
+
+function getFormTargetDifficulty() {
+  const value = document.querySelector("#targetDifficultySelect")?.value;
+  return Object.hasOwn(difficultyMultipliers, value) ? value : defaultTargetDifficulty;
+}
+
+function getTrainingNotes() {
+  return (document.querySelector("#trainingNotes")?.value ?? "").trim().slice(0, 500);
+}
+
+function getTargetDifficulty(record) {
+  if (state.difficulty !== "all") return state.difficulty;
+  return record.targetDifficulty || defaultTargetDifficulty;
+}
+
+function getTargetRange(track, official, activeLayout, difficulty) {
+  const base = estimateLayoutBaseLap(track, official, activeLayout);
+  const target = Math.round(base * difficultyMultipliers[difficulty]);
+  const padding = difficulty === "高手" ? 2 : 4;
+  return {
+    target,
+    lower: target - padding,
+    upper: target + (difficulty === "高手" ? 2 : 5),
+  };
+}
+
+function estimateLayoutBaseLap(track, official, activeLayout) {
+  if (!official?.layoutDetails?.length || !activeLayout?.lengthValue) return track.baseLap;
+  const representative = [...official.layoutDetails].sort((a, b) => b.lengthValue - a.lengthValue)[0];
+  const ratio = activeLayout.lengthValue / (representative.lengthValue || activeLayout.lengthValue);
+  return Math.max(25, Math.round(track.baseLap * ratio));
+}
+
+function parseLapTime(value) {
+  const clean = String(value).trim().replace(",", ".");
+  if (/^\d+(\.\d+)?$/.test(clean)) {
+    const seconds = Number(clean);
+    return seconds > 0 ? seconds : null;
+  }
+  const parts = clean.split(":").map(Number);
+  if (parts.length < 2 || parts.length > 3 || parts.some((part) => Number.isNaN(part))) return null;
+  const seconds = parts.pop();
+  const minutes = parts.pop() ?? 0;
+  const hours = parts.pop() ?? 0;
+  const total = hours * 3600 + minutes * 60 + seconds;
+  return total > 0 ? Number(total.toFixed(3)) : null;
+}
+
+function formatLapTime(totalSeconds) {
+  if (typeof totalSeconds !== "number" || Number.isNaN(totalSeconds)) return "未记录";
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds - minutes * 60;
+  return `${minutes}:${seconds.toFixed(3).padStart(6, "0")}`;
+}
+
+function formatGap(gap) {
+  if (gap === null || Number.isNaN(gap)) return "待记录";
+  if (gap <= 0) return `快 ${Math.abs(gap).toFixed(2)}s`;
+  return `慢 ${gap.toFixed(2)}s`;
+}
+
+function getTrainingStatusMeta(record) {
+  const status = Object.hasOwn(trainingStatuses, record.status) ? record.status : "not-started";
+  return {
+    label: trainingStatuses[status],
+    className: `status-${status}${record.favorite ? " is-favorite" : ""}`,
+  };
+}
+
+function getTrackTrainingSummary(track) {
+  const official = getOfficialTrack(track);
+  const records = official?.layoutDetails.map((layout) => getTrainingRecord(layout.id)) ?? [];
+  if (records.some((record) => record.favorite)) return { label: "收藏", className: "status-favorite" };
+  if (records.some((record) => record.status === "active")) return { label: "练习中", className: "status-active" };
+  if (records.length && records.every((record) => record.status === "complete")) return { label: "已达标", className: "status-complete" };
+  return { label: "未开始", className: "status-not-started" };
+}
+
+function trackMatchesTrainingFilter(track, filter) {
+  const official = getOfficialTrack(track);
+  const records = official?.layoutDetails.map((layout) => getTrainingRecord(layout.id)) ?? [];
+  if (!records.length) return filter === "not-started";
+  if (filter === "favorite") return records.some((record) => record.favorite);
+  if (filter === "complete") return records.some((record) => record.status === "complete");
+  if (filter === "active") return records.some((record) => record.status === "active");
+  return records.some((record) => record.status === "not-started");
+}
+
+function updateTrackTrainingBadges() {
+  trackButtons.forEach((button, name) => {
+    const track = trackByName.get(name);
+    const badge = button.querySelector("[data-track-training]");
+    if (!track || !badge) return;
+    const summary = getTrackTrainingSummary(track);
+    badge.className = `training-status-badge ${summary.className}`;
+    badge.textContent = summary.label;
+  });
+}
+
+function renderTrainingDashboard() {
+  if (!trainingSummaryEl) return;
+  const entries = allLayoutEntries.map((entry) => ({ ...entry, record: getTrainingRecord(entry.layout.id) }));
+  const activeCount = entries.filter((entry) => entry.record.status === "active").length;
+  const completeCount = entries.filter((entry) => entry.record.status === "complete").length;
+  const recent = entries
+    .filter((entry) => entry.record.updatedAt)
+    .sort((a, b) => Date.parse(b.record.updatedAt) - Date.parse(a.record.updatedAt))[0];
+  const recommendation = getRecommendedLayout(entries);
+  trainingUpdatedEl.textContent = recent ? `最近更新 ${formatRelativeDate(recent.record.updatedAt)}` : "本地记录";
+  trainingSummaryEl.innerHTML = `
+    <div class="training-summary-card">
+      <small>进行中布局</small>
+      <strong>${activeCount}</strong>
+      <span>继续收敛刹车点和出弯节奏</span>
+    </div>
+    <div class="training-summary-card">
+      <small>已达标布局</small>
+      <strong>${completeCount}</strong>
+      <span>${allLayoutEntries.length} 个官方布局中的完成数</span>
+    </div>
+    <div class="training-summary-card">
+      <small>最近练习</small>
+      <strong>${recent ? escapeHtml(recent.layout.name) : "暂无记录"}</strong>
+      <span>${recent ? escapeHtml(recent.track.name) : "保存一次圈速后这里会接上"}</span>
+    </div>
+    <button class="training-summary-card recommendation-button" type="button" data-dashboard-track="${recommendation.track.name}" data-dashboard-layout="${recommendation.layout.id}">
+      <small>下一条推荐</small>
+      <strong>${escapeHtml(recommendation.layout.name)}</strong>
+      <span>${escapeHtml(recommendation.track.name)} · ${regionName(recommendation.track.region)}</span>
+    </button>
+  `;
+}
+
+function getRecommendedLayout(entries = allLayoutEntries.map((entry) => ({ ...entry, record: getTrainingRecord(entry.layout.id) }))) {
+  const difficultyBonus = state.difficulty === "all" ? defaultTargetDifficulty : state.difficulty;
+  return [...entries]
+    .map((entry) => {
+      const verification = layoutVerification[entry.layout.id];
+      let score = 0;
+      if (entry.record.status !== "complete") score += 80;
+      if (entry.record.status === "active") score += 24;
+      if (entry.record.favorite) score += 16;
+      if (verification?.status === "verified" || verification?.status === "variant") score += 14;
+      if (entry.official.layouts >= 4) score += 10;
+      if (entry.layout.lengthValue > 4) score += 8;
+      if (entry.record.targetDifficulty === difficultyBonus) score += 6;
+      return { ...entry, score };
+    })
+    .sort((a, b) => b.score - a.score || b.layout.lengthValue - a.layout.lengthValue)[0];
+}
+
+function buildAllLayoutEntries() {
+  return tracks.flatMap((track) => {
+    const official = getOfficialTrack(track);
+    return (official?.layoutDetails ?? []).map((layout) => ({ track, official, layout }));
+  });
+}
+
+function formatRelativeDate(value) {
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return "刚刚";
+  const diffMinutes = Math.max(0, Math.round((Date.now() - time) / 60000));
+  if (diffMinutes < 1) return "刚刚";
+  if (diffMinutes < 60) return `${diffMinutes} 分钟前`;
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} 小时前`;
+  return `${Math.round(diffHours / 24)} 天前`;
+}
+
+function getVehicleReason(label, track, difficulty) {
+  const text = `${label} ${track.profile} ${track.tune}`;
+  if (/GT-R|quattro|GR Yaris|Lancer|Supra|NSX|WRX|BRZ/i.test(text)) return "牵引和稳定性强，适合反复刷圈建立节奏。";
+  if (/Mazda Roadster|Clio|Civic|86|A110|Cayman/i.test(text)) return "反馈轻、容错高，适合练刹车点和入弯姿态。";
+  if (/Ferrari|McLaren|Lamborghini|Viper|AMG|Aston|Porsche/i.test(text)) return "高速稳定和刷圈效率好，适合进阶后压缩误差。";
+  if (difficulty === "新手") return "稳定优先，帮助先跑出连续无失误圈。";
+  if (difficulty === "高手") return "上限更高，适合追求分段极限。";
+  return "综合性能均衡，适合当前布局的主线训练。";
+}
+
+function applyHashRoute() {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const trackName = params.get("track");
+  const layoutId = params.get("layout");
+  if (!trackName || !trackByName.has(trackName)) return;
+  state.selected = trackName;
+  const official = getOfficialTrack(trackByName.get(trackName));
+  state.selectedLayout = official?.layoutDetails.some((layout) => layout.id === layoutId) ? layoutId : "";
+}
+
+function updateUrlHash() {
+  if (!state.selected) return;
+  const track = trackByName.get(state.selected);
+  const official = track ? getOfficialTrack(track) : null;
+  const layoutId = getActiveLayout(official)?.id ?? "";
+  const params = new URLSearchParams();
+  params.set("track", state.selected);
+  if (layoutId) params.set("layout", layoutId);
+  history.replaceState(null, "", `#${params.toString()}`);
 }
 
 function getStandard(difficulty) {
@@ -1157,5 +1622,6 @@ function formatTime(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+applyHashRoute();
 initializeList();
 applyFilters();

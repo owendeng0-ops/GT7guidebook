@@ -185,7 +185,7 @@ h1 {
 
 .control-band {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto auto;
+  grid-template-columns: minmax(260px, 1fr) auto auto auto;
   gap: 14px;
   align-items: end;
   padding: 14px;
@@ -207,7 +207,9 @@ h1 {
   font-weight: 700;
 }
 
-input {
+input,
+select,
+textarea {
   width: 100%;
   min-height: 42px;
   padding: 0 14px;
@@ -219,7 +221,15 @@ input {
   font: inherit;
 }
 
-input:focus {
+textarea {
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(92, 179, 255, 0.16);
 }
@@ -269,6 +279,7 @@ button:hover {
 
 .track-list,
 .detail-panel,
+.training-dashboard,
 .method-band {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -276,6 +287,70 @@ button:hover {
     linear-gradient(180deg, rgba(16, 24, 34, 0.86), rgba(7, 10, 15, 0.82)),
     rgba(10, 15, 22, 0.8);
   box-shadow: 0 18px 56px rgba(0, 0, 0, 0.34);
+}
+
+.training-dashboard {
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.training-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.training-summary-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 116px;
+  padding: 14px;
+  border: 1px solid rgba(174, 199, 230, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(99, 199, 255, 0.11), transparent 44%),
+    rgba(7, 12, 19, 0.7);
+  overflow: hidden;
+}
+
+.training-summary-card::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(105deg, transparent, rgba(238, 70, 82, 0.18), transparent);
+  opacity: 0;
+  transform: translateX(-80%) skewX(-18deg);
+  transition: opacity 0.18s ease, transform 0.26s ease;
+}
+
+.training-summary-card small,
+.training-summary-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.training-summary-card strong {
+  position: relative;
+  z-index: 1;
+  font-size: 1.35rem;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-button {
+  width: 100%;
+  min-height: 116px;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.recommendation-button:hover::after {
+  opacity: 1;
+  transform: translateX(75%) skewX(-18deg);
 }
 
 .track-list {
@@ -396,6 +471,47 @@ button:hover {
 .track-button small {
   display: block;
   margin-top: 5px;
+}
+
+.track-button-meta {
+  display: grid;
+  gap: 7px;
+  justify-items: end;
+  align-content: center;
+}
+
+.training-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 0 9px;
+  border: 1px solid rgba(174, 199, 230, 0.18);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: rgba(7, 12, 19, 0.68);
+}
+
+.training-status-badge.status-active {
+  border-color: rgba(99, 199, 255, 0.55);
+  color: #cdeeff;
+  background: rgba(99, 199, 255, 0.12);
+}
+
+.training-status-badge.status-complete {
+  border-color: rgba(71, 210, 143, 0.55);
+  color: #bff7d6;
+  background: rgba(71, 210, 143, 0.12);
+}
+
+.training-status-badge.status-favorite,
+.training-status-badge.is-favorite {
+  border-color: rgba(245, 189, 91, 0.64);
+  color: #ffe0a3;
+  background: rgba(245, 189, 91, 0.13);
 }
 
 .detail-panel {
@@ -810,6 +926,134 @@ button:hover {
   border-color: rgba(99, 199, 255, 0.34);
 }
 
+.training-card,
+.layout-comparison {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--layout-accent, var(--blue)) 34%, var(--line));
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(99, 199, 255, 0.1), transparent 42%),
+    rgba(5, 9, 15, 0.62);
+}
+
+.training-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.training-card-head small,
+.training-card-head p,
+.training-metrics small,
+.training-form span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.training-card-head h3 {
+  margin: 3px 0 4px;
+  font-size: 1.2rem;
+}
+
+.training-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.training-metrics div {
+  padding: 12px;
+  border: 1px solid rgba(174, 199, 230, 0.14);
+  border-radius: 8px;
+  background: rgba(7, 12, 19, 0.58);
+}
+
+.training-metrics strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.05rem;
+}
+
+.training-metrics .is-ahead {
+  color: var(--green);
+}
+
+.training-form {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(160px, 0.8fr) minmax(220px, 1.5fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.training-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.training-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.training-actions button {
+  padding: 0 12px;
+}
+
+.inline-title {
+  padding: 0 0 10px;
+}
+
+.inline-title h3 {
+  margin: 0;
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(174, 199, 230, 0.14);
+  text-align: left;
+}
+
+.comparison-table th {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.comparison-table tr.is-active {
+  background: color-mix(in srgb, var(--layout-accent, var(--blue)) 12%, transparent);
+}
+
+.comparison-layout-button {
+  min-height: 30px;
+  max-width: 260px;
+  padding: 0 10px;
+  border-color: color-mix(in srgb, var(--layout-color) 42%, rgba(255, 255, 255, 0.14));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparison-layout-button.active {
+  border-color: var(--layout-color);
+  background: color-mix(in srgb, var(--layout-color) 24%, rgba(7, 12, 19, 0.8));
+}
+
 .official-data-strip div {
   padding: 12px;
   border: 1px solid var(--line);
@@ -1047,6 +1291,18 @@ button:hover {
   overflow-wrap: anywhere;
 }
 
+.vehicle-card > span:last-child strong,
+.vehicle-card > span:last-child small {
+  display: block;
+}
+
+.vehicle-reason {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .vehicle-no-image {
   display: grid;
   width: 82px;
@@ -1096,6 +1352,7 @@ button:hover {
   .app-header,
   .control-band,
   .dashboard,
+  .training-summary,
   .method-band {
     grid-template-columns: 1fr;
   }
@@ -1176,11 +1433,14 @@ button:hover {
   }
 
   .official-data-strip,
-  .layout-verification {
+  .layout-verification,
+  .training-metrics,
+  .training-form {
     grid-template-columns: 1fr;
   }
 
-  .pace-table {
+  .pace-table,
+  .comparison-table-wrap {
     display: block;
     overflow-x: auto;
   }
