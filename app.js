@@ -1433,6 +1433,8 @@ function renderTrainingDashboard() {
     .filter((entry) => entry.record.updatedAt)
     .sort((a, b) => Date.parse(b.record.updatedAt) - Date.parse(a.record.updatedAt))[0];
   const recommendation = getRecommendedLayout(entries);
+  const recentTrackName = recent ? getTrackZhName(recent.track.name) : "";
+  const recommendedTrackName = getTrackZhName(recommendation.track.name);
   trainingUpdatedEl.textContent = recent ? `最近更新 ${formatRelativeDate(recent.record.updatedAt)}` : "本地记录";
   trainingSummaryEl.innerHTML = `
     <div class="training-summary-card">
@@ -1448,12 +1450,12 @@ function renderTrainingDashboard() {
     <div class="training-summary-card">
       <small>最近练习</small>
       <strong>${recent ? escapeHtml(recent.layout.name) : "暂无记录"}</strong>
-      <span>${recent ? escapeHtml(recent.track.name) : "保存一次圈速后这里会接上"}</span>
+      <span>${recent ? escapeHtml(recentTrackName) : "保存一次圈速后这里会接上"}</span>
     </div>
     <button class="training-summary-card recommendation-button" type="button" data-dashboard-track="${recommendation.track.name}" data-dashboard-layout="${recommendation.layout.id}">
       <small>下一条推荐</small>
       <strong>${escapeHtml(recommendation.layout.name)}</strong>
-      <span>${escapeHtml(recommendation.track.name)} · ${regionName(recommendation.track.region)}</span>
+      <span>${escapeHtml(recommendedTrackName)} · ${regionName(recommendation.track.region)}</span>
     </button>
   `;
 }
