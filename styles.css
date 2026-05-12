@@ -411,6 +411,10 @@ button:hover {
   will-change: transform;
 }
 
+.track-button[hidden] {
+  display: none;
+}
+
 .track-button::before {
   position: absolute;
   inset: 0 auto 0 0;
@@ -459,6 +463,15 @@ button:hover {
 .track-button strong,
 .track-button span {
   overflow-wrap: anywhere;
+}
+
+.track-button em {
+  display: block;
+  margin-top: 2px;
+  color: #d9e8f7;
+  font-size: 0.88rem;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .track-button small,
@@ -842,6 +855,84 @@ button:hover {
 
 .layout-map-image {
   filter: saturate(1.02) contrast(1.02);
+}
+
+.corner-hotspots {
+  position: absolute;
+  inset: 28px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.corner-hotspot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  min-width: 0;
+  min-height: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+}
+
+.corner-hotspot::before {
+  position: absolute;
+  inset: 7px;
+  content: "";
+  border: 1px solid var(--layout-accent, var(--red));
+  border-radius: 50%;
+  background: var(--layout-accent, var(--red));
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.map-hero:hover .corner-hotspot::before {
+  opacity: 0.22;
+}
+
+.corner-hotspot span {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  width: max-content;
+  max-width: 190px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--layout-accent, var(--red)) 64%, white);
+  border-radius: 6px;
+  background: rgba(4, 8, 14, 0.92);
+  color: #f4f7fb;
+  font-size: 0.76rem;
+  font-weight: 900;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  white-space: normal;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+}
+
+.corner-hotspot:hover,
+.corner-hotspot:focus-visible {
+  z-index: 6;
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.corner-hotspot:hover::before,
+.corner-hotspot:focus-visible::before {
+  opacity: 0.9;
+  transform: scale(1.7);
+}
+
+.corner-hotspot:hover span,
+.corner-hotspot:focus-visible span {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .track-visual figcaption {
@@ -1455,6 +1546,10 @@ button:hover {
   }
 
   .track-map-mask {
+    inset: 24px;
+  }
+
+  .corner-hotspots {
     inset: 24px;
   }
 

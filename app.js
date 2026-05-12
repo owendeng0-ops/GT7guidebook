@@ -556,6 +556,80 @@ const officialNameAliases = {
   Nurburgring: "Nürburgring",
 };
 
+const trackChineseNames = {
+  Alsace: "阿尔萨斯",
+  "Autodromo Nazionale Monza": "蒙扎国家赛车场",
+  "Brands Hatch": "布兰兹哈奇",
+  "Circuit de Barcelona-Catalunya": "巴塞罗那-加泰罗尼亚赛道",
+  "Circuit de Sainte-Croix": "圣十字赛道",
+  "Circuit de Spa-Francorchamps": "斯帕-弗朗科尔尚赛道",
+  "Dragon Trail": "龙之径",
+  "Deep Forest Raceway": "深林赛道",
+  "Eiger Nordwand": "艾格北壁",
+  "Goodwood Motor Circuit": "古德伍德赛车场",
+  "24 Heures du Mans Racing Circuit": "勒芒 24 小时赛道",
+  "Autodrome Lago Maggiore": "马焦雷湖赛车场",
+  Nurburgring: "纽伯格林",
+  "Red Bull Ring": "红牛环",
+  "Sardegna - Road Track": "撒丁岛公路赛道",
+  "Sardegna - Windmills": "撒丁岛风车泥地",
+  Autopolis: "奥托波利斯",
+  "BB Raceway": "BB 赛车场",
+  "Fuji International Speedway": "富士国际赛车场",
+  "High Speed Ring": "高速环",
+  "Kyoto Driving Park": "京都驾驶公园",
+  "Mount Panorama": "全景山赛道",
+  "Suzuka Circuit": "铃鹿赛道",
+  "Tokyo Expressway": "东京高速公路",
+  "Tsukuba Circuit": "筑波赛道",
+  "Yas Marina Circuit": "亚斯码头赛道",
+  "Blue Moon Bay Speedway": "蓝月湾赛道",
+  "Colorado Springs": "科罗拉多泉",
+  "Daytona International Speedway": "代托纳国际赛车场",
+  "Fishermans Ranch": "渔夫牧场",
+  "Grand Valley Highway 1": "大峡谷 1 号公路",
+  "Autodromo Jose Carlos Pace": "何塞·卡洛斯·帕塞赛车场",
+  "Lake Louise": "路易斯湖",
+  "Michelin Raceway Road Atlanta": "米其林亚特兰大公路赛道",
+  "Northern Isle Speedway": "北岛赛道",
+  "Special Stage Route X": "特别赛段 X",
+  "Trial Mountain Circuit": "试炼山赛道",
+  "Watkins Glen International": "沃特金斯格伦国际赛道",
+  "WeatherTech Raceway Laguna Seca": "拉古纳塞卡赛道",
+  "Willow Springs International Raceway": "柳泉国际赛车场",
+  "Circuit Gilles-Villeneuve": "吉尔·维伦纽夫赛道",
+};
+
+const cornerNameSets = {
+  "Autodromo Nazionale Monza": ["第一减速弯", "大弯", "第二减速弯", "莱斯莫 1", "莱斯莫 2", "阿斯卡里", "帕拉波利卡"],
+  "Brands Hatch": ["Paddock Hill Bend", "Druids", "Graham Hill Bend", "Surtees", "Hawthorn Bend", "Westfield", "Sheene Curve", "Stirlings", "Clearways", "Clark Curve"],
+  "Circuit de Barcelona-Catalunya": ["Elf", "Renault", "Repsol", "Seat", "Würth", "Campsa", "La Caixa", "Banc Sabadell", "Europcar", "New Holland"],
+  "Circuit de Spa-Francorchamps": ["La Source", "Eau Rouge", "Raidillon", "Les Combes", "Malmedy", "Bruxelles", "No Name", "Pouhon", "Fagnes", "Campus", "Stavelot", "Blanchimont", "Bus Stop"],
+  "Goodwood Motor Circuit": ["Madgwick", "Fordwater", "St. Mary's", "Lavant", "Woodcote", "Chicane"],
+  "24 Heures du Mans Racing Circuit": ["Dunlop", "Tertre Rouge", "Mulsanne", "Indianapolis", "Arnage", "Porsche Curves", "Ford Chicane"],
+  Nurburgring: ["Hatzenbach", "Hocheichen", "Quiddelbacher Hohe", "Flugplatz", "Schwedenkreuz", "Aremberg", "Fuchsröhre", "Adenauer Forst", "Metzgesfeld", "Kallenhard", "Wehrseifen", "Ex-Mühle", "Bergwerk", "Kesselchen", "Karussell", "Hohe Acht", "Brünnchen", "Pflanzgarten", "Schwalbenschwanz", "Galgenkopf", "Döttinger Höhe"],
+  "Red Bull Ring": ["Niki Lauda Kurve", "Remus", "Schlossgold", "Rauch", "Würth", "Rindt", "Red Bull Mobile"],
+  "Fuji International Speedway": ["T1", "Coca-Cola", "100R", "Hairpin", "300R", "Dunlop", "GR Supra", "Panasonic"],
+  "Mount Panorama": ["Hell Corner", "Griffins Bend", "The Cutting", "Reid Park", "Sulman Park", "McPhillamy Park", "Skyline", "The Esses", "Forrest's Elbow", "The Chase", "Murray's Corner"],
+  "Suzuka Circuit": ["First Curve", "S Curves", "Dunlop", "Degner 1", "Degner 2", "Hairpin", "Spoon", "130R", "Casio Triangle"],
+  "Tsukuba Circuit": ["First Corner", "Dunlop", "80R", "Hairpin", "Back Straight", "Final Corner"],
+  "Yas Marina Circuit": ["North Hairpin", "Mars Drive", "Hotel", "Marina", "South Hairpin"],
+  "Daytona International Speedway": ["International Horseshoe", "West Horseshoe", "Kink", "Bus Stop", "NASCAR 3", "NASCAR 4"],
+  "Autodromo Jose Carlos Pace": ["Senna S", "Curva do Sol", "Descida do Lago", "Ferradura", "Laranjinha", "Pinheirinho", "Bico de Pato", "Mergulho", "Junção"],
+  "Michelin Raceway Road Atlanta": ["Turn 1", "The Esses", "Turn 5", "Turn 6", "Turn 7", "Back Straight", "Turn 10A", "Turn 10B", "Turn 12"],
+  "Watkins Glen International": ["The Ninety", "The Esses", "Bus Stop", "Carousel", "Laces", "Toe", "Heel"],
+  "WeatherTech Raceway Laguna Seca": ["Andretti Hairpin", "Turn 3", "Turn 4", "Turn 5", "Corkscrew", "Rainey Curve", "Turn 10", "Turn 11"],
+  "Willow Springs International Raceway": ["Castrol", "Rabbits Ear", "Omega", "The Balcony", "Monroe Ridge", "The Sweeper"],
+  "Circuit Gilles-Villeneuve": ["Senna S", "Virage 3", "Pont de la Concorde", "Hairpin", "Wall of Champions"],
+};
+
+const layoutCornerPositions = {
+  "954433": [
+    [16, 45], [26, 30], [34, 18], [45, 24], [49, 39], [54, 39], [58, 24], [64, 26], [72, 36], [77, 21],
+    [86, 10], [91, 20], [90, 52], [87, 66], [77, 60], [64, 73], [51, 87], [39, 90], [30, 76],
+  ],
+};
+
 const officialTrackMeta = buildOfficialTrackMeta();
 const officialMapIds = new Set([
   "000971",
@@ -720,6 +794,7 @@ function getFilteredTracks() {
       track.type,
       track.profile,
       track.tune,
+      getTrackZhName(track.name),
       ...track.focus,
       ...track.cars,
       ...(official?.layoutNames ?? []),
@@ -796,10 +871,12 @@ function renderTrackButton(track) {
   const active = track.name === state.selected ? " active" : "";
   const official = getOfficialTrack(track);
   const summary = getTrackTrainingSummary(track);
+  const zhName = getTrackZhName(track.name);
   return `
     <button class="track-button${active}" data-track="${track.name}">
       <span>
         <strong>${track.name}</strong>
+        <em>${zhName}</em>
         <small>${regionName(track.region)} · ${track.country} · ${track.type}</small>
       </span>
       <span class="track-button-meta">
@@ -1470,6 +1547,10 @@ function getOfficialTrack(track) {
   return officialTrackMeta[track.name];
 }
 
+function getTrackZhName(trackName) {
+  return trackChineseNames[trackName] ?? trackName;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -1521,8 +1602,63 @@ function renderTrackMap(official, title, activeLayout) {
         <strong>${escapeHtml(sourceLabel)}</strong>
         <span>${layoutAsset ? "按布局 ID 离线缓存" : "未找到 layout 级图片时使用"}</span>
       </div>
+      ${renderCornerHotspots(title, activeLayout)}
     </div>
   `;
+}
+
+function renderCornerHotspots(trackTitle, activeLayout) {
+  if (!activeLayout?.corners) return "";
+  const annotations = getCornerAnnotations(trackTitle, activeLayout);
+  if (!annotations.length) return "";
+  return `
+    <div class="corner-hotspots" aria-label="弯角名称热点">
+      ${annotations
+        .map(
+          (corner) => `
+            <button class="corner-hotspot" type="button" style="--x: ${corner.x}%; --y: ${corner.y}%;" aria-label="${escapeHtml(corner.name)}">
+              <span>${escapeHtml(corner.name)}</span>
+            </button>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function getCornerAnnotations(trackTitle, activeLayout) {
+  const count = Number(activeLayout.corners) || 0;
+  if (!count) return [];
+  const names = getCornerNames(trackTitle, activeLayout, count);
+  const positions = layoutCornerPositions[activeLayout.id] ?? generateCornerPositions(count, activeLayout.index ?? 0);
+  return names.slice(0, count).map((name, index) => {
+    const position = positions[index % positions.length];
+    return { name, x: position[0], y: position[1] };
+  });
+}
+
+function getCornerNames(trackTitle, activeLayout, count) {
+  const baseNames = cornerNameSets[state.selected] ?? cornerNameSets[trackTitle] ?? [];
+  return Array.from({ length: count }, (_, index) => {
+    const knownName = baseNames[index];
+    if (knownName) return `${knownName} / T${index + 1}`;
+    const isGameOnly = layoutVerification[activeLayout.id]?.status === "game-only";
+    return isGameOnly ? `训练弯 T${index + 1}` : `T${index + 1}`;
+  });
+}
+
+function generateCornerPositions(count, variant = 0) {
+  const centerX = 50;
+  const centerY = 50;
+  const radiusX = 36 + (variant % 3) * 3;
+  const radiusY = 34 + (variant % 2) * 4;
+  return Array.from({ length: count }, (_, index) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count + variant * 0.17;
+    const wobble = 1 + Math.sin(index * 1.73 + variant) * 0.08;
+    const x = centerX + Math.cos(angle) * radiusX * wobble;
+    const y = centerY + Math.sin(angle) * radiusY * wobble;
+    return [Math.round(Math.min(91, Math.max(9, x))), Math.round(Math.min(91, Math.max(9, y)))];
+  });
 }
 
 function renderLayoutVerification(activeLayout) {
