@@ -661,6 +661,7 @@ const officialMapIds = new Set([
 ]);
 
 const TRAINING_STORAGE_KEY = "gt7-track-atlas-training-v1";
+const CORNER_CALIBRATION_STORAGE_KEY = "gt7-track-atlas-corner-calibration-v1";
 const trainingStatuses = {
   "not-started": "未开始",
   active: "练习中",
@@ -675,6 +676,7 @@ const state = {
   query: "",
   selected: tracks[0].name,
   selectedLayout: "",
+  calibratingLayout: "",
 };
 
 const layoutAccentColors = ["#ef4652", "#42a5ff", "#20d7a3", "#f7c948", "#b56bff", "#ff8b3d"];
@@ -682,6 +684,7 @@ const vehicleAssets = window.VehicleAssets ?? {};
 const layoutAssets = window.LayoutAssets ?? {};
 const layoutVerification = window.LayoutVerification ?? {};
 const trainingData = loadTrainingData();
+const cornerCalibrationData = loadCornerCalibrationData();
 const allLayoutEntries = buildAllLayoutEntries();
 
 const listEl = document.querySelector("#trackList");
@@ -738,8 +741,25 @@ detailEl.addEventListener("click", (event) => {
   if (layoutButton && detailEl.contains(layoutButton)) {
     if (state.selectedLayout === layoutButton.dataset.layoutId) return;
     state.selectedLayout = layoutButton.dataset.layoutId;
+    state.calibratingLayout = "";
     updateUrlHash();
     renderDetailOnly();
+    return;
+  }
+
+  const cornerActionButton = event.target.closest("[data-corner-action]");
+  if (cornerActionButton && detailEl.contains(cornerActionButton)) {
+    handleCornerCalibrationAction(cornerActionButton.dataset.cornerAction);
+    return;
+  }
+
+  const calibrationFrame = event.target.closest(".track-map-frame.is-calibrating");
+  if (
+    calibrationFrame &&
+    detailEl.contains(calibrationFrame) &&
+    !event.target.closest("button, input, textarea, .layout-accent-card, .map-source-card, .map-logo-badge")
+  ) {
+    addCornerCalibrationPoint(event, calibrationFrame);
     return;
   }
 
@@ -749,6 +769,12 @@ detailEl.addEventListener("click", (event) => {
 });
 
 detailEl.addEventListener("input", (event) => {
+  const cornerNameInput = event.target.closest("[data-corner-name-index]");
+  if (cornerNameInput && detailEl.contains(cornerNameInput)) {
+    handleCornerNameInput(cornerNameInput);
+    return;
+  }
+
   const input = event.target.closest("[data-lap-part]");
   if (!input || !detailEl.contains(input)) return;
   const maxLength = Number(input.getAttribute("maxlength") ?? 2);
@@ -768,6 +794,7 @@ trainingSummaryEl?.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", () => {
   applyHashRoute();
+  state.calibratingLayout = "";
   updateActiveTrackButton();
   applyFilters();
   renderDetailOnly();
@@ -845,6 +872,7 @@ function selectTrack(name, layoutId = "") {
   state.selected = name;
   const official = getOfficialTrack(trackByName.get(name));
   state.selectedLayout = official?.layoutDetails.some((layout) => layout.id === layoutId) ? layoutId : "";
+  state.calibratingLayout = "";
   updateUrlHash();
   updateActiveTrackButton();
   renderDetailOnly();
@@ -1186,6 +1214,50 @@ function loadTrainingData() {
   }
 }
 
+function loadCornerCalibrationData() {
+  try {
+    const raw = localStorage.getItem(CORNER_CALIBRATION_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.entries(parsed).reduce((memo, [layoutId, entries]) => {
+      const sanitized = sanitizeCornerEntries(entries);
+      if (layoutId && sanitized.length) memo[layoutId] = sanitized;
+      return memo;
+    }, {});
+  } catch {
+    return {};
+  }
+}
+
+function sanitizeCornerEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.reduce((memo, entry) => {
+    const point = Array.isArray(entry)
+      ? { x: entry[0], y: entry[1], name: entry[2] }
+      : entry;
+    if (!point || typeof point !== "object") return memo;
+    const x = clampPercent(Number(point.x));
+    const y = clampPercent(Number(point.y));
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return memo;
+    memo.push({
+      x,
+      y,
+      name: typeof point.name === "string" ? point.name.slice(0, 80) : "",
+    });
+    return memo;
+  }, []);
+}
+
+function clampPercent(value) {
+  if (!Number.isFinite(value)) return NaN;
+  return Math.min(100, Math.max(0, Number(value.toFixed(1))));
+}
+
+function persistCornerCalibrationData() {
+  localStorage.setItem(CORNER_CALIBRATION_STORAGE_KEY, JSON.stringify(cornerCalibrationData));
+}
+
 function sanitizeTrainingRecord(record) {
   const status = Object.hasOwn(trainingStatuses, record.status) ? record.status : "not-started";
   const targetDifficulty = Object.hasOwn(difficultyMultipliers, record.targetDifficulty) ? record.targetDifficulty : defaultTargetDifficulty;
@@ -1273,6 +1345,88 @@ function handleTrainingAction(action) {
       status: nextStatus,
     });
   }
+}
+
+function handleCornerCalibrationAction(action) {
+  const activeLayout = getCurrentActiveLayout();
+  if (!activeLayout) return;
+  const layoutId = activeLayout.id;
+
+  if (action === "start") {
+    state.calibratingLayout = layoutId;
+    renderDetailOnly();
+    return;
+  }
+  if (action === "finish") {
+    state.calibratingLayout = "";
+    renderDetailOnly();
+    return;
+  }
+  if (action === "undo") {
+    const entries = [...(cornerCalibrationData[layoutId] ?? [])];
+    entries.pop();
+    updateCornerCalibrationEntries(layoutId, entries);
+    state.calibratingLayout = layoutId;
+    renderDetailOnly();
+    return;
+  }
+  if (action === "clear") {
+    if (!window.confirm("清空当前布局的本地弯角校准点？")) return;
+    updateCornerCalibrationEntries(layoutId, []);
+    state.calibratingLayout = layoutId;
+    renderDetailOnly();
+  }
+}
+
+function addCornerCalibrationPoint(event, frame) {
+  const activeLayout = getCurrentActiveLayout();
+  if (!activeLayout || !isCornerCalibrating(activeLayout)) return;
+  const layoutId = activeLayout.id;
+  const maxCorners = Number(activeLayout.corners) || 0;
+  const entries = [...(cornerCalibrationData[layoutId] ?? [])];
+  if (maxCorners && entries.length >= maxCorners) {
+    window.alert("当前布局的弯角数量已经标完，可以先撤销或清空后重新校准。");
+    return;
+  }
+
+  const rect = frame.getBoundingClientRect();
+  const names = getCornerNames(state.selected, activeLayout, maxCorners || entries.length + 1);
+  entries.push({
+    x: clampPercent(((event.clientX - rect.left) / rect.width) * 100),
+    y: clampPercent(((event.clientY - rect.top) / rect.height) * 100),
+    name: names[entries.length] ?? `T${entries.length + 1}`,
+  });
+  updateCornerCalibrationEntries(layoutId, entries);
+  renderDetailOnly();
+}
+
+function handleCornerNameInput(input) {
+  const activeLayout = getCurrentActiveLayout();
+  if (!activeLayout) return;
+  const index = Number(input.dataset.cornerNameIndex);
+  const entries = [...(cornerCalibrationData[activeLayout.id] ?? [])];
+  if (!Number.isInteger(index) || !entries[index]) return;
+  entries[index] = {
+    ...entries[index],
+    name: input.value.slice(0, 80),
+  };
+  updateCornerCalibrationEntries(activeLayout.id, entries);
+}
+
+function updateCornerCalibrationEntries(layoutId, entries) {
+  const sanitized = sanitizeCornerEntries(entries);
+  if (sanitized.length) {
+    cornerCalibrationData[layoutId] = sanitized;
+  } else {
+    delete cornerCalibrationData[layoutId];
+  }
+  persistCornerCalibrationData();
+}
+
+function getCurrentActiveLayout() {
+  const track = trackByName.get(state.selected);
+  const official = track ? getOfficialTrack(track) : null;
+  return getActiveLayout(official);
 }
 
 function getFormTargetDifficulty() {
@@ -1573,9 +1727,10 @@ function renderTrackMap(official, title, activeLayout) {
   const mapSrc = layoutAsset?.mapSrc ?? fallbackSrc;
   const sourceLabel = layoutAsset ? `${layoutAsset.sourceName} · ${layoutAsset.sourceType}` : "地点级备用图";
   const patternClass = activeLayout ? ` layout-pattern-${activeLayout.index % 6}` : "";
+  const calibrationClass = isCornerCalibrating(activeLayout) ? " is-calibrating" : "";
   if (!mapSrc) {
     return `
-      <div class="track-map-frame is-missing">
+      <div class="track-map-frame is-missing${calibrationClass}">
         <strong>布局图待补</strong>
         <span>此布局暂未匹配到可离线显示的真实布局图</span>
         <div class="layout-accent-card">
@@ -1587,7 +1742,7 @@ function renderTrackMap(official, title, activeLayout) {
     `;
   }
   return `
-    <div class="track-map-frame is-highlighted${patternClass}${layoutAsset ? " is-layout-map" : " is-fallback-map"}">
+    <div class="track-map-frame is-highlighted${patternClass}${calibrationClass}${layoutAsset ? " is-layout-map" : " is-fallback-map"}">
       <img class="layout-map-image" src="${mapSrc}" alt="${title} ${layoutName} 布局图" loading="eager" decoding="async" />
       <div class="layout-accent-card">
         <small>ACTIVE LAYOUT</small>
@@ -1607,12 +1762,14 @@ function renderTrackMap(official, title, activeLayout) {
 function renderCornerHotspots(trackTitle, activeLayout) {
   if (!activeLayout?.corners) return "";
   const annotations = getCornerAnnotations(trackTitle, activeLayout);
+  const controls = renderCornerCalibrationControls(activeLayout, annotations);
   if (!annotations.length) {
     return `
       <div class="corner-calibration-note">
         <small>TURN LABELS</small>
-        <strong>弯角标注待校准</strong>
+        <strong>${isCornerCalibrating(activeLayout) ? `点击布局图添加第 1 个弯角` : "弯角标注待校准"}</strong>
       </div>
+      ${controls}
     `;
   }
   return `
@@ -1627,19 +1784,92 @@ function renderCornerHotspots(trackTitle, activeLayout) {
         )
         .join("")}
     </div>
+    ${controls}
   `;
 }
 
 function getCornerAnnotations(trackTitle, activeLayout) {
   const count = Number(activeLayout.corners) || 0;
   if (!count) return [];
-  const positions = layoutCornerPositions[activeLayout.id];
-  if (!positions?.length) return [];
+  const positions = getCornerCalibrationEntries(activeLayout.id);
+  if (!positions.length) return [];
   const names = getCornerNames(trackTitle, activeLayout, count);
-  return names.slice(0, count).map((name, index) => {
-    const position = positions[index % positions.length];
-    return { name, x: position[0], y: position[1] };
+  return positions.slice(0, count).map((position, index) => {
+    return { name: position.name || names[index] || `T${index + 1}`, x: position.x, y: position.y };
   });
+}
+
+function getCornerCalibrationEntries(layoutId) {
+  const staticEntries = sanitizeCornerEntries(normalizeCornerEntries(layoutCornerPositions[layoutId]));
+  if (staticEntries.length) return staticEntries;
+  return sanitizeCornerEntries(cornerCalibrationData[layoutId]);
+}
+
+function normalizeCornerEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.reduce((memo, entry) => {
+    if (Array.isArray(entry)) {
+      memo.push({ x: entry[0], y: entry[1], name: entry[2] ?? "" });
+      return memo;
+    }
+    memo.push(entry);
+    return memo;
+  }, []);
+}
+
+function isCornerCalibrating(activeLayout) {
+  return Boolean(activeLayout?.id && state.calibratingLayout === activeLayout.id);
+}
+
+function renderCornerCalibrationControls(activeLayout, annotations) {
+  if (!activeLayout?.id) return "";
+  const isCalibrating = isCornerCalibrating(activeLayout);
+  const editableEntries = cornerCalibrationData[activeLayout.id] ?? [];
+  const total = Number(activeLayout.corners) || annotations.length;
+  const exportValue = escapeHtml(JSON.stringify({ [activeLayout.id]: editableEntries }, null, 2));
+  const progressText = `${editableEntries.length}/${total || "?"}`;
+
+  if (!isCalibrating) {
+    return `
+      <div class="corner-calibration-panel is-compact">
+        <button class="corner-calibration-primary" type="button" data-corner-action="start">开始校准弯角</button>
+        <span>${annotations.length ? "本地校准点已启用" : "当前布局还没有可信弯角点位"}</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="corner-calibration-panel">
+      <div class="corner-calibration-header">
+        <div>
+          <small>CORNER CALIBRATION</small>
+          <strong>点击布局图记录点位 ${progressText}</strong>
+        </div>
+        <button type="button" data-corner-action="finish">完成</button>
+      </div>
+      <div class="corner-calibration-actions">
+        <button type="button" data-corner-action="undo" ${editableEntries.length ? "" : "disabled"}>撤销</button>
+        <button type="button" data-corner-action="clear" ${editableEntries.length ? "" : "disabled"}>清空</button>
+      </div>
+      ${
+        editableEntries.length
+          ? `<div class="corner-name-list">
+              ${editableEntries
+                .map(
+                  (entry, index) => `
+                    <label>
+                      <span>T${index + 1}</span>
+                      <input type="text" value="${escapeHtml(entry.name || `T${index + 1}`)}" data-corner-name-index="${index}" />
+                    </label>
+                  `,
+                )
+                .join("")}
+            </div>
+            <textarea class="corner-calibration-export" readonly aria-label="弯角校准 JSON">${exportValue}</textarea>`
+          : `<p>进入校准后，按实际弯角位置依次点击布局图。点位会只保存在本机浏览器，不会覆盖官方数据。</p>`
+      }
+    </div>
+  `;
 }
 
 function getCornerNames(trackTitle, activeLayout, count) {
