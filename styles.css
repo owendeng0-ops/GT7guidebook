@@ -961,6 +961,11 @@ button:hover {
   font-size: 0.92rem;
 }
 
+.corner-calibration-header span {
+  display: block;
+  margin-top: 2px;
+}
+
 .corner-calibration-panel button {
   min-height: 30px;
   padding: 5px 10px;
@@ -980,6 +985,32 @@ button:hover {
 .corner-calibration-primary {
   border-color: rgba(239, 70, 82, 0.64) !important;
   background: linear-gradient(135deg, rgba(239, 70, 82, 0.98), rgba(66, 165, 255, 0.8)) !important;
+}
+
+.corner-name-preview {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.corner-name-preview span {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid rgba(7, 12, 19, 0.12);
+  border-radius: 999px;
+  background: rgba(7, 12, 19, 0.08);
+  color: rgba(9, 18, 29, 0.72);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.corner-name-preview span.is-next {
+  border-color: color-mix(in srgb, var(--layout-accent) 62%, white);
+  background: color-mix(in srgb, var(--layout-accent) 18%, white);
+  color: #09121d;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--layout-accent) 22%, transparent);
 }
 
 .corner-name-list {

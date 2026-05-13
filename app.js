@@ -623,6 +623,71 @@ const cornerNameSets = {
   "Circuit Gilles-Villeneuve": ["Senna S", "Virage 3", "Pont de la Concorde", "Hairpin", "Wall of Champions"],
 };
 
+const nurburgringGpCornerNames = [
+  "Yokohama-S",
+  "Mercedes-Arena",
+  "Valvoline-Kurve",
+  "Ford-Kurve",
+  "Dunlop-Kehre",
+  "Michael-Schumacher-S",
+  "Bit-Kurve",
+  "RTL-Kurve",
+  "Warsteiner-Kurve",
+  "NGK-Schikane",
+  "Coca-Cola-Kurve",
+];
+
+const nordschleifeCornerNames = [
+  "Antoniusbuche",
+  "Tiergarten",
+  "Hohenrain",
+  "T13",
+  "Hatzenbach",
+  "Hocheichen",
+  "Quiddelbacher-Höhe",
+  "Flugplatz",
+  "Schwedenkreuz",
+  "Aremberg",
+  "Fuchsröhre",
+  "Adenauer Forst",
+  "Metzgesfeld",
+  "Kallenhard",
+  "Wehrseifen",
+  "Ex-Mühle",
+  "Lauda Links",
+  "Bergwerk",
+  "Kesselchen",
+  "Klostertal",
+  "Steilstrecke",
+  "Karussell",
+  "Hohe Acht",
+  "Hedwigshöhe",
+  "Wippermann",
+  "Eschbach",
+  "Brünnchen",
+  "Eiskurve",
+  "Pflanzgarten I",
+  "Pflanzgarten II",
+  "Stefan-Bellof-S",
+  "Schwalbenschwanz",
+  "Kleines Karussell",
+  "Galgenkopf",
+  "Döttinger Höhe",
+  "Antoniusbuche Return",
+  "Tiergarten Return",
+  "Hohenrain-Schikane",
+];
+
+const layoutCornerNameSets = {
+  "12ceac": nordschleifeCornerNames,
+  "8dd16b": nordschleifeCornerNames,
+  "2066d9": nurburgringGpCornerNames,
+  "9ec2c6": nurburgringGpCornerNames,
+  "31acde": [...nurburgringGpCornerNames, ...nordschleifeCornerNames],
+  "592211": [...nurburgringGpCornerNames, ...nordschleifeCornerNames],
+  fd4818: [...nurburgringGpCornerNames, ...nordschleifeCornerNames],
+};
+
 const layoutCornerPositions = {};
 
 const officialTrackMeta = buildOfficialTrackMeta();
@@ -1370,6 +1435,12 @@ function handleCornerCalibrationAction(action) {
     renderDetailOnly();
     return;
   }
+  if (action === "autoname") {
+    autoNameCornerCalibrationEntries(activeLayout);
+    state.calibratingLayout = layoutId;
+    renderDetailOnly();
+    return;
+  }
   if (action === "clear") {
     if (!window.confirm("清空当前布局的本地弯角校准点？")) return;
     updateCornerCalibrationEntries(layoutId, []);
@@ -1421,6 +1492,19 @@ function updateCornerCalibrationEntries(layoutId, entries) {
     delete cornerCalibrationData[layoutId];
   }
   persistCornerCalibrationData();
+}
+
+function autoNameCornerCalibrationEntries(activeLayout) {
+  const entries = [...(cornerCalibrationData[activeLayout.id] ?? [])];
+  if (!entries.length) return;
+  const names = getCornerNames(state.selected, activeLayout, entries.length);
+  updateCornerCalibrationEntries(
+    activeLayout.id,
+    entries.map((entry, index) => ({
+      ...entry,
+      name: names[index] ?? entry.name ?? `T${index + 1}`,
+    })),
+  );
 }
 
 function getCurrentActiveLayout() {
@@ -1828,12 +1912,15 @@ function renderCornerCalibrationControls(activeLayout, annotations) {
   const total = Number(activeLayout.corners) || annotations.length;
   const exportValue = escapeHtml(JSON.stringify({ [activeLayout.id]: editableEntries }, null, 2));
   const progressText = `${editableEntries.length}/${total || "?"}`;
+  const nameLibrary = getCornerNameLibrary(activeLayout);
+  const nextCornerName = getCornerNames(state.selected, activeLayout, editableEntries.length + 1)[editableEntries.length] ?? `T${editableEntries.length + 1}`;
+  const libraryLine = nameLibrary.length ? `名称库 ${nameLibrary.length} 个 · 下一个：${nextCornerName}` : "暂无专用名称库，将使用 T 编号";
 
   if (!isCalibrating) {
     return `
       <div class="corner-calibration-panel is-compact">
         <button class="corner-calibration-primary" type="button" data-corner-action="start">开始校准弯角</button>
-        <span>${annotations.length ? "本地校准点已启用" : "当前布局还没有可信弯角点位"}</span>
+        <span>${annotations.length ? "本地校准点已启用" : "当前布局还没有可信弯角点位"} · ${escapeHtml(libraryLine)}</span>
       </div>
     `;
   }
@@ -1844,13 +1931,28 @@ function renderCornerCalibrationControls(activeLayout, annotations) {
         <div>
           <small>CORNER CALIBRATION</small>
           <strong>点击布局图记录点位 ${progressText}</strong>
+          <span>${escapeHtml(libraryLine)}</span>
         </div>
         <button type="button" data-corner-action="finish">完成</button>
       </div>
       <div class="corner-calibration-actions">
+        <button type="button" data-corner-action="autoname" ${editableEntries.length && nameLibrary.length ? "" : "disabled"}>自动补名</button>
         <button type="button" data-corner-action="undo" ${editableEntries.length ? "" : "disabled"}>撤销</button>
         <button type="button" data-corner-action="clear" ${editableEntries.length ? "" : "disabled"}>清空</button>
       </div>
+      ${
+        nameLibrary.length
+          ? `<div class="corner-name-preview" aria-label="弯角名称库预览">
+              ${nameLibrary
+                .slice(Math.max(0, editableEntries.length - 2), editableEntries.length + 5)
+                .map((name, index) => {
+                  const absoluteIndex = Math.max(0, editableEntries.length - 2) + index;
+                  return `<span class="${absoluteIndex === editableEntries.length ? "is-next" : ""}">${escapeHtml(name)} / T${absoluteIndex + 1}</span>`;
+                })
+                .join("")}
+            </div>`
+          : ""
+      }
       ${
         editableEntries.length
           ? `<div class="corner-name-list">
@@ -1873,13 +1975,17 @@ function renderCornerCalibrationControls(activeLayout, annotations) {
 }
 
 function getCornerNames(trackTitle, activeLayout, count) {
-  const baseNames = cornerNameSets[state.selected] ?? cornerNameSets[trackTitle] ?? [];
+  const baseNames = getCornerNameLibrary(activeLayout, trackTitle);
   return Array.from({ length: count }, (_, index) => {
     const knownName = baseNames[index];
     if (knownName) return `${knownName} / T${index + 1}`;
     const isGameOnly = layoutVerification[activeLayout.id]?.status === "game-only";
     return isGameOnly ? `训练弯 T${index + 1}` : `T${index + 1}`;
   });
+}
+
+function getCornerNameLibrary(activeLayout, trackTitle = state.selected) {
+  return layoutCornerNameSets[activeLayout?.id] ?? cornerNameSets[state.selected] ?? cornerNameSets[trackTitle] ?? [];
 }
 
 function renderLayoutVerification(activeLayout) {
