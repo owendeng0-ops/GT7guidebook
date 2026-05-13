@@ -623,12 +623,7 @@ const cornerNameSets = {
   "Circuit Gilles-Villeneuve": ["Senna S", "Virage 3", "Pont de la Concorde", "Hairpin", "Wall of Champions"],
 };
 
-const layoutCornerPositions = {
-  "954433": [
-    [16, 45], [26, 30], [34, 18], [45, 24], [49, 39], [54, 39], [58, 24], [64, 26], [72, 36], [77, 21],
-    [86, 10], [91, 20], [90, 52], [87, 66], [77, 60], [64, 73], [51, 87], [39, 90], [30, 76],
-  ],
-};
+const layoutCornerPositions = {};
 
 const officialTrackMeta = buildOfficialTrackMeta();
 const officialMapIds = new Set([
@@ -1612,7 +1607,14 @@ function renderTrackMap(official, title, activeLayout) {
 function renderCornerHotspots(trackTitle, activeLayout) {
   if (!activeLayout?.corners) return "";
   const annotations = getCornerAnnotations(trackTitle, activeLayout);
-  if (!annotations.length) return "";
+  if (!annotations.length) {
+    return `
+      <div class="corner-calibration-note">
+        <small>TURN LABELS</small>
+        <strong>弯角标注待校准</strong>
+      </div>
+    `;
+  }
   return `
     <div class="corner-hotspots" aria-label="弯角名称热点">
       ${annotations
@@ -1631,8 +1633,9 @@ function renderCornerHotspots(trackTitle, activeLayout) {
 function getCornerAnnotations(trackTitle, activeLayout) {
   const count = Number(activeLayout.corners) || 0;
   if (!count) return [];
+  const positions = layoutCornerPositions[activeLayout.id];
+  if (!positions?.length) return [];
   const names = getCornerNames(trackTitle, activeLayout, count);
-  const positions = layoutCornerPositions[activeLayout.id] ?? generateCornerPositions(count, activeLayout.index ?? 0);
   return names.slice(0, count).map((name, index) => {
     const position = positions[index % positions.length];
     return { name, x: position[0], y: position[1] };
@@ -1646,20 +1649,6 @@ function getCornerNames(trackTitle, activeLayout, count) {
     if (knownName) return `${knownName} / T${index + 1}`;
     const isGameOnly = layoutVerification[activeLayout.id]?.status === "game-only";
     return isGameOnly ? `训练弯 T${index + 1}` : `T${index + 1}`;
-  });
-}
-
-function generateCornerPositions(count, variant = 0) {
-  const centerX = 50;
-  const centerY = 50;
-  const radiusX = 36 + (variant % 3) * 3;
-  const radiusY = 34 + (variant % 2) * 4;
-  return Array.from({ length: count }, (_, index) => {
-    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count + variant * 0.17;
-    const wobble = 1 + Math.sin(index * 1.73 + variant) * 0.08;
-    const x = centerX + Math.cos(angle) * radiusX * wobble;
-    const y = centerY + Math.sin(angle) * radiusY * wobble;
-    return [Math.round(Math.min(91, Math.max(9, x))), Math.round(Math.min(91, Math.max(9, y)))];
   });
 }
 

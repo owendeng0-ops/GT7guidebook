@@ -864,6 +864,33 @@ button:hover {
   pointer-events: none;
 }
 
+.corner-calibration-note {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 5;
+  max-width: min(260px, 42%);
+  padding: 8px 10px;
+  border: 1px solid rgba(7, 12, 19, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #111820;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.12);
+}
+
+.corner-calibration-note small {
+  display: block;
+  color: rgba(9, 18, 29, 0.58);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.corner-calibration-note strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.86rem;
+}
+
 .corner-hotspot {
   position: absolute;
   left: var(--x);
@@ -1592,6 +1619,12 @@ button:hover {
 
   .corner-hotspots {
     inset: 24px;
+  }
+
+  .corner-calibration-note {
+    left: 12px;
+    bottom: 12px;
+    max-width: 58%;
   }
 
   .official-data-strip,
