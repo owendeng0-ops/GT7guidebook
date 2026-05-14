@@ -688,7 +688,123 @@ const layoutCornerNameSets = {
   fd4818: [...nurburgringGpCornerNames, ...nordschleifeCornerNames],
 };
 
-const layoutCornerPositions = {};
+const nurburgringGpCornerPositions = [
+  { x: 73.9, y: 19, name: "Yokohama-S" },
+  { x: 66, y: 12, name: "Mercedes-Arena" },
+  { x: 40, y: 20.5, name: "Valvoline-Kurve" },
+  { x: 28.5, y: 39.4, name: "Ford-Kurve" },
+  { x: 42.8, y: 40, name: "Dunlop-Kehre" },
+  { x: 40.1, y: 54.2, name: "Michael-Schumacher-S" },
+  { x: 40.9, y: 68.1, name: "Bit-Kurve" },
+  { x: 24.2, y: 88.6, name: "RTL-Kurve" },
+  { x: 21, y: 91.8, name: "Warsteiner-Kurve" },
+  { x: 34.7, y: 77.2, name: "NGK-Schikane" },
+  { x: 47.3, y: 38.1, name: "Coca-Cola-Kurve" },
+];
+
+const nurburgringEnduranceGpCornerPositions = [
+  { x: 36, y: 80, name: "Yokohama-S" },
+  { x: 31.3, y: 84.3, name: "Mercedes-Arena" },
+  { x: 26, y: 85.9, name: "Valvoline-Kurve" },
+  { x: 25, y: 90, name: "Ford-Kurve" },
+  { x: 27.3, y: 83.7, name: "Dunlop-Kehre" },
+  { x: 30.2, y: 77.7, name: "Michael-Schumacher-S" },
+  { x: 34.8, y: 76.8, name: "Bit-Kurve" },
+  { x: 39.4, y: 76.5, name: "RTL-Kurve" },
+  { x: 37.8, y: 78.7, name: "Warsteiner-Kurve" },
+  { x: 34, y: 82, name: "NGK-Schikane" },
+  { x: 35.3, y: 81.3, name: "Coca-Cola-Kurve" },
+];
+
+const nordschleifeCornerPositions = [
+  { x: 36, y: 82, name: "Antoniusbuche" },
+  { x: 35.2, y: 81.2, name: "Tiergarten" },
+  { x: 35.6, y: 81, name: "Hohenrain" },
+  { x: 35.8, y: 81, name: "T13" },
+  { x: 34.9, y: 81.5, name: "Hatzenbach" },
+  { x: 20.6, y: 78, name: "Hocheichen" },
+  { x: 17.1, y: 75.4, name: "Quiddelbacher-Höhe" },
+  { x: 14, y: 64, name: "Flugplatz" },
+  { x: 11.5, y: 55.3, name: "Schwedenkreuz" },
+  { x: 9.4, y: 48.9, name: "Aremberg" },
+  { x: 18.1, y: 36.9, name: "Fuchsröhre" },
+  { x: 21.8, y: 32.8, name: "Adenauer Forst" },
+  { x: 22, y: 24, name: "Metzgesfeld" },
+  { x: 25.6, y: 19.1, name: "Kallenhard" },
+  { x: 28.6, y: 19.5, name: "Wehrseifen" },
+  { x: 38.3, y: 18.3, name: "Ex-Mühle" },
+  { x: 41, y: 17.1, name: "Lauda Links" },
+  { x: 47.8, y: 14.3, name: "Bergwerk" },
+  { x: 49.8, y: 15.2, name: "Kesselchen" },
+  { x: 50.5, y: 21.6, name: "Klostertal" },
+  { x: 58, y: 24.2, name: "Steilstrecke" },
+  { x: 72.5, y: 25.1, name: "Karussell" },
+  { x: 75.5, y: 23.9, name: "Hohe Acht" },
+  { x: 84.2, y: 19.8, name: "Hedwigshöhe" },
+  { x: 83.6, y: 20.6, name: "Wippermann" },
+  { x: 86, y: 19.8, name: "Eschbach" },
+  { x: 92, y: 22.8, name: "Brünnchen" },
+  { x: 92.4, y: 27.4, name: "Eiskurve" },
+  { x: 90.6, y: 33.5, name: "Pflanzgarten I" },
+  { x: 88.6, y: 37.4, name: "Pflanzgarten II" },
+  { x: 85.5, y: 43.4, name: "Stefan-Bellof-S" },
+  { x: 81.6, y: 48, name: "Schwalbenschwanz" },
+  { x: 72.7, y: 48.9, name: "Kleines Karussell" },
+  { x: 75, y: 51, name: "Galgenkopf" },
+  { x: 63.6, y: 64.1, name: "Döttinger Höhe" },
+  { x: 51.4, y: 71.8, name: "Antoniusbuche Return" },
+  { x: 44.8, y: 77.3, name: "Tiergarten Return" },
+  { x: 36.5, y: 81.5, name: "Hohenrain-Schikane" },
+];
+
+const nordschleifeEnduranceCornerPositions = [
+  { x: 35.3, y: 81.3, name: "Antoniusbuche" },
+  { x: 35.2, y: 81.2, name: "Tiergarten" },
+  { x: 35.6, y: 80.9, name: "Hohenrain" },
+  { x: 35.7, y: 80.9, name: "T13" },
+  { x: 34.9, y: 81.5, name: "Hatzenbach" },
+  { x: 23.6, y: 75, name: "Hocheichen" },
+  { x: 20.2, y: 73.1, name: "Quiddelbacher-Höhe" },
+  { x: 13.2, y: 64.7, name: "Flugplatz" },
+  { x: 13, y: 55.1, name: "Schwedenkreuz" },
+  { x: 10.5, y: 48.4, name: "Aremberg" },
+  { x: 17.3, y: 36.7, name: "Fuchsröhre" },
+  { x: 19.2, y: 31.5, name: "Adenauer Forst" },
+  { x: 22.8, y: 25.3, name: "Metzgesfeld" },
+  { x: 24.9, y: 19.8, name: "Kallenhard" },
+  { x: 25.2, y: 20.4, name: "Wehrseifen" },
+  { x: 37.4, y: 15.5, name: "Ex-Mühle" },
+  { x: 38.2, y: 15, name: "Lauda Links" },
+  { x: 49.2, y: 14.1, name: "Bergwerk" },
+  { x: 49.8, y: 15.2, name: "Kesselchen" },
+  { x: 52.2, y: 17.5, name: "Klostertal" },
+  { x: 58.9, y: 18.6, name: "Steilstrecke" },
+  { x: 74.3, y: 22.2, name: "Karussell" },
+  { x: 75.3, y: 22.5, name: "Hohe Acht" },
+  { x: 82.7, y: 18.3, name: "Hedwigshöhe" },
+  { x: 82.2, y: 18.8, name: "Wippermann" },
+  { x: 83.3, y: 17.6, name: "Eschbach" },
+  { x: 92.3, y: 22.5, name: "Brünnchen" },
+  { x: 92.4, y: 27.2, name: "Eiskurve" },
+  { x: 89.4, y: 33.5, name: "Pflanzgarten I" },
+  { x: 88.2, y: 36.4, name: "Pflanzgarten II" },
+  { x: 83.4, y: 41.2, name: "Stefan-Bellof-S" },
+  { x: 80.3, y: 43.2, name: "Schwalbenschwanz" },
+  { x: 73.1, y: 47.3, name: "Kleines Karussell" },
+  { x: 75, y: 51, name: "Galgenkopf" },
+  { x: 61.3, y: 59.9, name: "Döttinger Höhe" },
+  { x: 49, y: 67.7, name: "Antoniusbuche Return" },
+  { x: 42.6, y: 75.1, name: "Tiergarten Return" },
+  { x: 35.8, y: 80.8, name: "Hohenrain-Schikane" },
+];
+
+const layoutCornerPositions = {
+  "12ceac": nordschleifeCornerPositions,
+  "8dd16b": nordschleifeCornerPositions,
+  "2066d9": nurburgringGpCornerPositions,
+  "31acde": [...nurburgringEnduranceGpCornerPositions, ...nordschleifeEnduranceCornerPositions],
+  "592211": [...nurburgringEnduranceGpCornerPositions, ...nordschleifeEnduranceCornerPositions],
+};
 
 const officialTrackMeta = buildOfficialTrackMeta();
 const officialMapIds = new Set([
@@ -1460,7 +1576,9 @@ function addCornerCalibrationPoint(event, frame) {
     return;
   }
 
-  const rect = frame.getBoundingClientRect();
+  const surface = frame.querySelector(".layout-map-surface") ?? frame;
+  const rect = surface.getBoundingClientRect();
+  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
   const names = getCornerNames(state.selected, activeLayout, maxCorners || entries.length + 1);
   entries.push({
     x: clampPercent(((event.clientX - rect.left) / rect.width) * 100),
@@ -1827,7 +1945,10 @@ function renderTrackMap(official, title, activeLayout) {
   }
   return `
     <div class="track-map-frame is-highlighted${patternClass}${calibrationClass}${layoutAsset ? " is-layout-map" : " is-fallback-map"}">
-      <img class="layout-map-image" src="${mapSrc}" alt="${title} ${layoutName} 布局图" loading="eager" decoding="async" />
+      <div class="layout-map-surface">
+        <img class="layout-map-image" src="${mapSrc}" alt="${title} ${layoutName} 布局图" loading="eager" decoding="async" />
+        ${renderCornerHotspots(title, activeLayout)}
+      </div>
       <div class="layout-accent-card">
         <small>ACTIVE LAYOUT</small>
         <strong>${layoutName}</strong>
@@ -1838,7 +1959,6 @@ function renderTrackMap(official, title, activeLayout) {
         <strong>${escapeHtml(sourceLabel)}</strong>
         <span>${layoutAsset ? "按布局 ID 离线缓存" : "未找到 layout 级图片时使用"}</span>
       </div>
-      ${renderCornerHotspots(title, activeLayout)}
     </div>
   `;
 }
@@ -1884,9 +2004,13 @@ function getCornerAnnotations(trackTitle, activeLayout) {
 }
 
 function getCornerCalibrationEntries(layoutId) {
-  const staticEntries = sanitizeCornerEntries(normalizeCornerEntries(layoutCornerPositions[layoutId]));
-  if (staticEntries.length) return staticEntries;
-  return sanitizeCornerEntries(cornerCalibrationData[layoutId]);
+  const localEntries = sanitizeCornerEntries(cornerCalibrationData[layoutId]);
+  if (localEntries.length) return localEntries;
+  return getStaticCornerEntries(layoutId);
+}
+
+function getStaticCornerEntries(layoutId) {
+  return sanitizeCornerEntries(normalizeCornerEntries(layoutCornerPositions[layoutId]));
 }
 
 function normalizeCornerEntries(entries) {
@@ -1909,6 +2033,7 @@ function renderCornerCalibrationControls(activeLayout, annotations) {
   if (!activeLayout?.id) return "";
   const isCalibrating = isCornerCalibrating(activeLayout);
   const editableEntries = cornerCalibrationData[activeLayout.id] ?? [];
+  const staticEntries = getStaticCornerEntries(activeLayout.id);
   const total = Number(activeLayout.corners) || annotations.length;
   const exportValue = escapeHtml(JSON.stringify({ [activeLayout.id]: editableEntries }, null, 2));
   const progressText = `${editableEntries.length}/${total || "?"}`;
@@ -1919,8 +2044,8 @@ function renderCornerCalibrationControls(activeLayout, annotations) {
   if (!isCalibrating) {
     return `
       <div class="corner-calibration-panel is-compact">
-        <button class="corner-calibration-primary" type="button" data-corner-action="start">开始校准弯角</button>
-        <span>${annotations.length ? "本地校准点已启用" : "当前布局还没有可信弯角点位"} · ${escapeHtml(libraryLine)}</span>
+        <button class="corner-calibration-primary" type="button" data-corner-action="start">${staticEntries.length ? "重新校准弯角" : "开始校准弯角"}</button>
+        <span>${editableEntries.length ? "本地校准点已启用" : staticEntries.length ? "官方校准点已启用" : "当前布局还没有可信弯角点位"} · ${escapeHtml(libraryLine)}</span>
       </div>
     `;
   }

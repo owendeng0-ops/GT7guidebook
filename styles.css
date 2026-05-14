@@ -874,6 +874,20 @@ button:hover {
   object-fit: contain;
 }
 
+.layout-map-surface {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 820px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: stretch;
+}
+
+.layout-map-surface .layout-map-image {
+  width: 100%;
+  height: 100%;
+}
+
 .layout-map-image {
   filter: saturate(1.02) contrast(1.02);
 }
