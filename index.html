@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GT7 赛道攻略平台</title>
-    <link rel="stylesheet" href="./styles.css?v=1.1.3" />
+    <link rel="stylesheet" href="./styles.css?v=1.3.0" />
   </head>
   <body>
     <header class="app-header">
@@ -20,8 +20,8 @@
       </div>
       <div class="header-stats" aria-label="资料概览">
         <div>
-          <strong>V1.1</strong>
-          <span>训练助手版</span>
+          <strong>V1.3</strong>
+          <span>遥测测试版</span>
         </div>
         <div>
           <strong id="trackCount">41</strong>
@@ -46,6 +46,8 @@
         </div>
         <div id="trainingSummary" class="training-summary"></div>
       </section>
+
+      <section id="telemetryPanel" class="telemetry-panel" aria-label="GT7 telemetry live panel"></section>
 
       <section class="control-band" aria-label="筛选赛道">
         <div class="search-box">
@@ -90,9 +92,19 @@
       <section class="version-band" aria-label="版本记录">
         <div class="section-title">
           <h2>版本记录</h2>
-          <span>当前版本 V1.1.3</span>
+          <span>当前版本 V1.3.0</span>
         </div>
         <div class="version-grid">
+          <article>
+            <small>V1.3.0 · 2026-05-16</small>
+            <h3>遥测实时读取</h3>
+            <p>新增本地 telemetry-agent，已验证可从 PS5 / GT7 读取 UDP 遥测，并在主站显示实时车速、挡位、转速、油门、刹车和采样率。</p>
+          </article>
+          <article>
+            <small>V1.2.0 · 2026-05-16</small>
+            <h3>手动训练闭环</h3>
+            <p>训练仪表盘升级为“今天练什么”，每个 layout 支持多次练习记录、最近 5 次复盘、车辆/设置记录、训练任务和车辆推荐联动。</p>
+          </article>
           <article>
             <small>V1.1.3 · 2026-05-14</small>
             <h3>弯角点位校准</h3>
@@ -145,6 +157,6 @@
     <script src="./layout-assets.js"></script>
     <script src="./layout-verification.js"></script>
     <script src="./vehicle-assets.js"></script>
-    <script src="./app.js?v=1.1.3"></script>
+    <script src="./app.js?v=1.3.0"></script>
   </body>
 </html>

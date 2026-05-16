@@ -280,6 +280,7 @@ button:hover {
 .track-list,
 .detail-panel,
 .training-dashboard,
+.telemetry-panel,
 .method-band {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -294,9 +295,229 @@ button:hover {
   overflow: hidden;
 }
 
+.telemetry-panel {
+  position: relative;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  overflow: hidden;
+}
+
+.telemetry-panel::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(66, 165, 255, 0.12), transparent 28%),
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(255, 255, 255, 0.025) 47px 48px);
+  opacity: 0.7;
+}
+
+.telemetry-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.telemetry-title {
+  align-items: center;
+}
+
+.telemetry-title p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.telemetry-connect {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(174, 199, 230, 0.24);
+  border-radius: 999px;
+  background: rgba(4, 8, 13, 0.76);
+  color: var(--text);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.telemetry-connect:hover {
+  border-color: var(--line-hot);
+  transform: translateY(-1px);
+}
+
+.telemetry-live-grid {
+  display: grid;
+  grid-template-columns: 1.1fr repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.telemetry-card {
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(174, 199, 230, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(66, 165, 255, 0.1), transparent 48%),
+    rgba(4, 8, 13, 0.72);
+}
+
+.telemetry-card small,
+.telemetry-card span {
+  display: block;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.telemetry-card strong {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.telemetry-card em {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.telemetry-status-card.is-online {
+  border-color: rgba(32, 215, 163, 0.54);
+  box-shadow: inset 3px 0 0 rgba(32, 215, 163, 0.82);
+}
+
+.telemetry-status-card.is-waiting {
+  border-color: rgba(247, 201, 72, 0.45);
+  box-shadow: inset 3px 0 0 rgba(247, 201, 72, 0.78);
+}
+
+.telemetry-status-card.is-offline {
+  border-color: rgba(238, 70, 82, 0.42);
+  box-shadow: inset 3px 0 0 rgba(238, 70, 82, 0.74);
+}
+
+.telemetry-bars {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.telemetry-bar {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.telemetry-bar div {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(174, 199, 230, 0.12);
+  overflow: hidden;
+}
+
+.telemetry-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.08s linear;
+}
+
+.telemetry-bar.throttle i {
+  background: linear-gradient(90deg, #20d7a3, #9cffd5);
+}
+
+.telemetry-bar.brake i {
+  background: linear-gradient(90deg, #ef4652, #ff9d64);
+}
+
+.telemetry-pending {
+  margin: 12px 14px 0;
+  padding: 12px;
+  border: 1px solid rgba(174, 199, 230, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 8, 13, 0.58);
+}
+
+.telemetry-pending.empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.telemetry-pending.empty strong {
+  color: var(--text);
+}
+
+.telemetry-pending-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.telemetry-lap-list {
+  display: grid;
+  gap: 8px;
+}
+
+.telemetry-lap-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid rgba(174, 199, 230, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(100deg, rgba(32, 215, 163, 0.12), transparent 42%),
+    rgba(7, 12, 19, 0.7);
+}
+
+.telemetry-lap-card strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.telemetry-lap-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.telemetry-lap-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.telemetry-lap-actions button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(174, 199, 230, 0.22);
+  border-radius: 999px;
+  background: rgba(4, 8, 13, 0.75);
+  color: var(--text);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.telemetry-lap-actions button:hover {
+  border-color: var(--line-hot);
+}
+
 .training-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(220px, 1.25fr) repeat(4, minmax(0, 1fr));
   gap: 10px;
   padding: 0 14px 14px;
 }
@@ -339,6 +560,17 @@ button:hover {
   font-size: 1.35rem;
   line-height: 1.12;
   overflow-wrap: anywhere;
+}
+
+.training-summary-card.is-primary {
+  border-color: rgba(238, 70, 82, 0.54);
+  background:
+    linear-gradient(135deg, rgba(238, 70, 82, 0.24), rgba(99, 199, 255, 0.1) 48%, transparent),
+    rgba(7, 12, 19, 0.78);
+}
+
+.training-summary-card.is-primary strong {
+  font-size: 1.55rem;
 }
 
 .recommendation-button {
@@ -1250,6 +1482,10 @@ button:hover {
   font-size: 1.2rem;
 }
 
+.track-recommend-layout {
+  color: var(--blue);
+}
+
 .training-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1274,11 +1510,65 @@ button:hover {
   color: var(--green);
 }
 
+.training-workbench {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.82fr) minmax(0, 1.35fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.training-task-panel,
+.training-session-panel,
+.session-review {
+  border: 1px solid rgba(174, 199, 230, 0.14);
+  border-radius: 8px;
+  background: rgba(7, 12, 19, 0.46);
+  padding: 12px;
+}
+
+.training-task-list {
+  display: grid;
+  gap: 8px;
+}
+
+.training-task {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(174, 199, 230, 0.14);
+  border-left: 3px solid rgba(99, 199, 255, 0.26);
+  border-radius: 8px;
+  background: rgba(5, 10, 17, 0.5);
+}
+
+.training-task.is-active {
+  border-left-color: var(--line-hot);
+  background: linear-gradient(135deg, rgba(238, 70, 82, 0.18), rgba(99, 199, 255, 0.08));
+}
+
+.training-task small,
+.training-task span,
+.session-row small,
+.session-row span,
+.session-empty span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.training-task strong {
+  font-size: 0.94rem;
+}
+
 .training-form {
   display: grid;
   grid-template-columns: minmax(140px, 0.7fr) minmax(160px, 0.8fr) minmax(220px, 1.5fr);
   gap: 10px;
   margin-top: 12px;
+}
+
+.training-form.session-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0;
 }
 
 .training-form label {
@@ -1321,6 +1611,49 @@ button:hover {
 
 .training-actions button {
   padding: 0 12px;
+}
+
+.session-review {
+  margin-top: 12px;
+}
+
+.session-list {
+  display: grid;
+  gap: 8px;
+}
+
+.session-row {
+  display: grid;
+  grid-template-columns: 120px 100px minmax(150px, 0.8fr) minmax(180px, 1.2fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid rgba(174, 199, 230, 0.13);
+  border-radius: 8px;
+  background: rgba(5, 10, 17, 0.52);
+}
+
+.session-row.is-best {
+  border-color: rgba(32, 215, 163, 0.45);
+}
+
+.session-row strong,
+.session-row span {
+  display: block;
+  margin-top: 3px;
+}
+
+.session-row .is-ahead {
+  color: var(--green);
+}
+
+.session-empty {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px dashed rgba(174, 199, 230, 0.22);
+  border-radius: 8px;
+  background: rgba(5, 10, 17, 0.44);
 }
 
 .inline-title {
@@ -1610,8 +1943,31 @@ button:hover {
 }
 
 .vehicle-card > span:last-child strong,
-.vehicle-card > span:last-child small {
+.vehicle-card > span:last-child small,
+.vehicle-card mark {
   display: block;
+}
+
+.vehicle-card mark {
+  width: fit-content;
+  margin-top: 3px;
+  padding: 2px 7px;
+  border: 1px solid rgba(99, 199, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(99, 199, 255, 0.1);
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.vehicle-card.is-last-used {
+  border-color: rgba(32, 215, 163, 0.42);
+}
+
+.vehicle-card.is-last-used mark {
+  border-color: rgba(32, 215, 163, 0.36);
+  background: rgba(32, 215, 163, 0.1);
+  color: var(--green);
 }
 
 .vehicle-reason {
@@ -1711,6 +2067,9 @@ button:hover {
   .control-band,
   .dashboard,
   .training-summary,
+  .telemetry-live-grid,
+  .training-workbench,
+  .training-form.session-form,
   .version-grid,
   .method-band {
     grid-template-columns: 1fr;
@@ -1746,7 +2105,9 @@ button:hover {
 
   .header-stats,
   .detail-head,
-  .detail-grid {
+  .detail-grid,
+  .telemetry-lap-card,
+  .telemetry-live-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1814,7 +2175,10 @@ button:hover {
   .official-data-strip,
   .layout-verification,
   .training-metrics,
-  .training-form {
+  .training-form,
+  .training-form.session-form,
+  .training-workbench,
+  .session-row {
     grid-template-columns: 1fr;
   }
 

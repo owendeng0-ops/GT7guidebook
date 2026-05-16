@@ -10,6 +10,14 @@ tokyo-logo-module.js
 official-tracks-gb.js
 official-tracks-id-list-gb.js
 assets/tmp-*
+telemetry-agent/*.log
+telemetry-agent/*.pid
+video/**/node_modules/
+video/**/*.log
+video/**/*.wav
+video/**/*.mp3
+video/**/*.mp4
+video/
 
 # OS/editor noise.
 .DS_Store

@@ -842,7 +842,11 @@ const officialMapIds = new Set([
 ]);
 
 const TRAINING_STORAGE_KEY = "gt7-track-atlas-training-v1";
+const TRAINING_STORAGE_KEY_V12 = "gt7-track-atlas-training-v1.2";
 const CORNER_CALIBRATION_STORAGE_KEY = "gt7-track-atlas-corner-calibration-v1";
+const TELEMETRY_WS_URL = "ws://127.0.0.1:8787/live";
+const TELEMETRY_HEALTH_URL = "http://127.0.0.1:8787/health";
+const TELEMETRY_PENDING_STORAGE_KEY = "gt7-track-atlas-telemetry-pending-v1";
 const trainingStatuses = {
   "not-started": "未开始",
   active: "练习中",
@@ -867,6 +871,16 @@ const layoutVerification = window.LayoutVerification ?? {};
 const trainingData = loadTrainingData();
 const cornerCalibrationData = loadCornerCalibrationData();
 const allLayoutEntries = buildAllLayoutEntries();
+const telemetryState = {
+  socket: null,
+  status: "disconnected",
+  connection: "manual_mode",
+  lastTick: null,
+  lastStatus: null,
+  pendingLaps: loadPendingTelemetryLaps(),
+  lastMessageAt: "",
+  reconnectTimer: 0,
+};
 
 const listEl = document.querySelector("#trackList");
 const detailEl = document.querySelector("#trackDetail");
@@ -875,6 +889,7 @@ const searchInput = document.querySelector("#searchInput");
 const trackCountEl = document.querySelector("#trackCount");
 const trainingSummaryEl = document.querySelector("#trainingSummary");
 const trainingUpdatedEl = document.querySelector("#trainingUpdated");
+const telemetryPanelEl = document.querySelector("#telemetryPanel");
 const trackByName = new Map(tracks.map((track) => [track.name, track]));
 const trackButtons = new Map();
 let pendingFilterFrame = 0;
@@ -967,10 +982,26 @@ detailEl.addEventListener("input", (event) => {
   }
 });
 
+detailEl.addEventListener("change", (event) => {
+  const difficultySelect = event.target.closest("#targetDifficultySelect");
+  if (!difficultySelect || !detailEl.contains(difficultySelect)) return;
+  const activeLayout = getCurrentActiveLayout();
+  if (!activeLayout) return;
+  saveTrainingRecord(activeLayout.id, { targetDifficulty: getFormTargetDifficulty() });
+});
+
 trainingSummaryEl?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-dashboard-track]");
   if (!button) return;
   selectTrack(button.dataset.dashboardTrack, button.dataset.dashboardLayout);
+});
+
+telemetryPanelEl?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-telemetry-action]");
+  if (!button) return;
+  if (button.dataset.telemetryAction === "connect") connectTelemetryAgent(true);
+  if (button.dataset.telemetryAction === "archive-lap") archiveTelemetryLap(button.dataset.telemetryLapId);
+  if (button.dataset.telemetryAction === "dismiss-lap") dismissTelemetryLap(button.dataset.telemetryLapId);
 });
 
 window.addEventListener("hashchange", () => {
@@ -1075,6 +1106,7 @@ function renderTrackButton(track) {
   const active = track.name === state.selected ? " active" : "";
   const official = getOfficialTrack(track);
   const summary = getTrackTrainingSummary(track);
+  const recommendation = getRecommendedLayoutForTrack(track);
   const zhName = getTrackZhName(track.name);
   return `
     <button class="track-button${active}" data-track="${track.name}">
@@ -1082,6 +1114,7 @@ function renderTrackButton(track) {
         <strong>${track.name}</strong>
         <em>${zhName}</em>
         <small>${regionName(track.region)} · ${track.country} · ${track.type}</small>
+        ${recommendation ? `<small class="track-recommend-layout">推荐：${escapeHtml(recommendation.layout.name)}</small>` : ""}
       </span>
       <span class="track-button-meta">
         <span class="tag">${official?.layouts ?? track.layouts} 布局</span>
@@ -1193,19 +1226,22 @@ function getCarsForDifficulty(track, difficulty) {
 }
 
 function renderVehicleChoices(cars, track, difficulty) {
+  const activeRecord = getCurrentActiveLayout() ? getTrainingRecord(getCurrentActiveLayout().id) : null;
   if (!cars.length) {
     return `<span class="vehicle-card is-text-only"><span class="vehicle-no-image">GT7</span><span><strong>稳定四驱或低马力车</strong><small class="vehicle-reason">优先稳定与容错，先把练习节奏固定。</small></span></span>`;
   }
 
-  return `<div class="vehicle-stack">${cars.map((label) => renderVehicleChoice(label, track, difficulty)).join("")}</div>`;
+  return `<div class="vehicle-stack">${cars.map((label) => renderVehicleChoice(label, track, difficulty, activeRecord)).join("")}</div>`;
 }
 
-function renderVehicleChoice(label, track, difficulty) {
+function renderVehicleChoice(label, track, difficulty, activeRecord = null) {
   const asset = vehicleAssets[label];
   const title = escapeHtml(asset?.officialName ?? label);
   const reason = getVehicleReason(label, track, difficulty);
+  const goalTag = getVehicleGoalTag(difficulty);
+  const isLastUsed = activeRecord?.currentVehicle && normalizeVehicleName(activeRecord.currentVehicle) === normalizeVehicleName(label);
   return `
-    <span class="vehicle-card${asset ? "" : " is-text-only"}" title="${title}">
+    <span class="vehicle-card${asset ? "" : " is-text-only"}${isLastUsed ? " is-last-used" : ""}" title="${title}">
       ${
         asset
           ? `<img src="${asset.src}" alt="${title}" loading="lazy" decoding="async" />`
@@ -1213,9 +1249,104 @@ function renderVehicleChoice(label, track, difficulty) {
       }
       <span>
         <strong>${escapeHtml(label)}</strong>
+        <mark>${isLastUsed ? "上次使用" : goalTag}</mark>
         <small class="vehicle-reason">${escapeHtml(reason)}</small>
       </span>
     </span>
+  `;
+}
+
+function getVehicleGoalTag(difficulty) {
+  if (difficulty === "新手") return "稳定完赛";
+  if (difficulty === "高手") return "极限攻弯";
+  return "误差控制";
+}
+
+function getTrainingTaskSubtitle(difficulty) {
+  if (difficulty === "新手") return "先稳定，再谈速度";
+  if (difficulty === "高手") return "压缩分段极限";
+  return "把单圈误差压到 1 秒内";
+}
+
+function renderTrainingTasks(activeDifficulty) {
+  const tasks = [
+    {
+      difficulty: "新手",
+      title: "稳定完赛",
+      copy: "连续 3 圈无重大失误，刹车点固定，先建立可靠节奏。",
+    },
+    {
+      difficulty: "进阶",
+      title: "误差控制",
+      copy: "单圈误差控制在 1 秒左右，开始调整线路和出弯节奏。",
+    },
+    {
+      difficulty: "高手",
+      title: "极限攻弯",
+      copy: "追求分段极限，重点管理出弯速度、轮胎负载和车辆姿态。",
+    },
+  ];
+  return tasks
+    .map(
+      (task) => `
+        <article class="training-task${task.difficulty === activeDifficulty ? " is-active" : ""}">
+          <small>${task.difficulty}</small>
+          <strong>${task.title}</strong>
+          <span>${task.copy}</span>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderSessionRows(sessions, range) {
+  if (!sessions.length) {
+    return `
+      <div class="session-empty">
+        <strong>还没有本地练习记录</strong>
+        <span>录入一次本次圈速后，这里会显示最近 5 次复盘。</span>
+      </div>
+    `;
+  }
+
+  let runningBest = Infinity;
+  const chronological = [...sessions].reverse();
+  const bestById = new Map();
+  chronological.forEach((session) => {
+    const isBest = session.lapSeconds < runningBest;
+    runningBest = Math.min(runningBest, session.lapSeconds);
+    bestById.set(session.id, isBest);
+  });
+
+  return `
+    <div class="session-list">
+      ${sessions
+        .map((session) => {
+          const gap = session.lapSeconds - range.target;
+          const bestClass = bestById.get(session.id) ? " is-best" : "";
+          return `
+            <article class="session-row${bestClass}">
+              <div>
+                <small>${formatRelativeDate(session.createdAt)}</small>
+                <strong>${formatLapTime(session.lapSeconds)}</strong>
+              </div>
+              <div>
+                <small>目标差距</small>
+                <span class="${gap <= 0 ? "is-ahead" : ""}">${formatGap(gap)}</span>
+              </div>
+              <div>
+                <small>车辆 / 设置</small>
+                <span>${escapeHtml([session.vehicle, session.setup].filter(Boolean).join(" · ") || "未填写")}</span>
+              </div>
+              <div>
+                <small>复盘</small>
+                <span>${escapeHtml([session.mistakes, session.feeling].filter(Boolean).join("；") || "暂无备注")}</span>
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
   `;
 }
 
@@ -1223,11 +1354,17 @@ function renderTrainingCard(track, official, activeLayout) {
   const record = getTrainingRecord(activeLayout.id);
   const targetDifficulty = getTargetDifficulty(record);
   const range = getTargetRange(track, official, activeLayout, targetDifficulty);
-  const best = typeof record.bestLapSeconds === "number" ? record.bestLapSeconds : null;
+  const best = getBestLapSeconds(record);
   const gap = best ? best - range.target : null;
   const status = getTrainingStatusMeta(record);
   const favoriteLabel = record.favorite ? "取消收藏" : "收藏布局";
-  const lapParts = splitLapTime(best);
+  const lapParts = splitLapTime(null);
+  const recentSessions = getRecentSessions(record, 5);
+  const latestSession = getLatestSession(record);
+  const sessionRows = renderSessionRows(recentSessions, range);
+  const tasks = renderTrainingTasks(targetDifficulty);
+  const currentVehicle = record.currentVehicle || latestSession?.vehicle || "";
+  const currentSetup = record.currentSetup || latestSession?.setup || "";
   return `
     <section class="training-card" aria-label="布局训练卡片">
       <div class="training-card-head">
@@ -1242,39 +1379,77 @@ function renderTrainingCard(track, official, activeLayout) {
         <div><small>目标中位</small><strong>${formatTime(range.target)}</strong></div>
         <div><small>个人最佳</small><strong>${best ? formatLapTime(best) : "未记录"}</strong></div>
         <div><small>目标差距</small><strong class="${gap !== null && gap <= 0 ? "is-ahead" : ""}">${formatGap(gap)}</strong></div>
-        <div><small>本地状态</small><strong>${status.label}</strong></div>
+        <div><small>练习次数</small><strong>${record.sessions.length}</strong></div>
       </div>
-      <div class="training-form">
-        <label>
-          <span>目标难度</span>
-          <select id="targetDifficultySelect">
-            ${Object.keys(difficultyMultipliers)
-              .map((difficulty) => `<option value="${difficulty}"${difficulty === targetDifficulty ? " selected" : ""}>${difficulty}</option>`)
-              .join("")}
-          </select>
-        </label>
-        <label class="lap-time-field">
-          <span>最佳圈速</span>
-          <div class="lap-time-input" aria-label="最佳圈速，按分钟、秒、毫秒输入">
-            <input id="bestLapMinutes" data-lap-part="minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.minutes}" placeholder="00" aria-label="分钟" />
-            <b>:</b>
-            <input id="bestLapSeconds" data-lap-part="seconds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.seconds}" placeholder="00" aria-label="秒" />
-            <b>:</b>
-            <input id="bestLapMillis" data-lap-part="millis" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${lapParts.millis}" placeholder="000" aria-label="毫秒" />
+      <div class="training-workbench">
+        <div class="training-task-panel">
+          <div class="section-title inline-title">
+            <h3>本阶段训练任务</h3>
+            <span>${escapeHtml(getTrainingTaskSubtitle(targetDifficulty))}</span>
           </div>
-          <small class="lap-time-hint">只填数字，自动组成 分:秒:毫秒</small>
-        </label>
-        <label class="training-notes-field">
-          <span>练习笔记</span>
-          <textarea id="trainingNotes" rows="2" placeholder="记录刹车点、失误弯角或车辆设置">${escapeHtml(record.notes ?? "")}</textarea>
-        </label>
+          <div class="training-task-list">${tasks}</div>
+        </div>
+        <div class="training-session-panel">
+          <div class="section-title inline-title">
+            <h3>本次练习记录</h3>
+            <span>保存后会进入最近 5 次复盘</span>
+          </div>
+          <div class="training-form session-form">
+            <label>
+              <span>目标难度</span>
+              <select id="targetDifficultySelect">
+                ${Object.keys(difficultyMultipliers)
+                  .map((difficulty) => `<option value="${difficulty}"${difficulty === targetDifficulty ? " selected" : ""}>${difficulty}</option>`)
+                  .join("")}
+              </select>
+            </label>
+            <label class="lap-time-field">
+              <span>本次圈速</span>
+              <div class="lap-time-input" aria-label="本次圈速，按分钟、秒、毫秒输入">
+                <input id="bestLapMinutes" data-lap-part="minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.minutes}" placeholder="00" aria-label="分钟" />
+                <b>:</b>
+                <input id="bestLapSeconds" data-lap-part="seconds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.seconds}" placeholder="00" aria-label="秒" />
+                <b>:</b>
+                <input id="bestLapMillis" data-lap-part="millis" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${lapParts.millis}" placeholder="000" aria-label="毫秒" />
+              </div>
+              <small class="lap-time-hint">只填数字，自动组成 分:秒:毫秒</small>
+            </label>
+            <label>
+              <span>车辆</span>
+              <input id="sessionVehicle" type="text" value="${escapeHtml(currentVehicle)}" placeholder="例如 Porsche 911 GT3 RS" />
+            </label>
+            <label>
+              <span>轮胎 / 辅助设置</span>
+              <input id="sessionSetup" type="text" value="${escapeHtml(currentSetup)}" placeholder="RH / TC 1 / ABS Default" />
+            </label>
+            <label>
+              <span>失误点</span>
+              <input id="sessionMistakes" type="text" placeholder="例如 T1 刹晚、出弯推头" />
+            </label>
+            <label class="training-notes-field">
+              <span>练习感受</span>
+              <textarea id="sessionFeeling" rows="2" placeholder="这一轮最该修正的节奏、弯角或车辆设置"></textarea>
+            </label>
+            <label class="training-notes-field">
+              <span>长期笔记</span>
+              <textarea id="trainingNotes" rows="2" placeholder="固定刹车点、车辆设定、路线心得">${escapeHtml(record.notes ?? "")}</textarea>
+            </label>
+          </div>
+        </div>
       </div>
       <div class="training-actions">
-        <button type="button" data-training-action="save-training">保存记录</button>
+        <button type="button" data-training-action="save-training">保存本次练习</button>
         <button type="button" data-training-action="set-current">设为当前训练</button>
         <button type="button" data-training-action="complete">标记已达标</button>
         <button type="button" data-training-action="toggle-favorite">${favoriteLabel}</button>
         <button type="button" data-training-action="reset">重置记录</button>
+      </div>
+      <div class="session-review">
+        <div class="section-title inline-title">
+          <h3>最近 5 次复盘</h3>
+          <span>${latestSession ? `最近 ${formatRelativeDate(latestSession.createdAt)}` : "还没有练习记录"}</span>
+        </div>
+        ${sessionRows}
       </div>
     </section>
   `;
@@ -1298,7 +1473,7 @@ function renderLayoutComparison(track, official, activeLayout) {
           <td>${layout.length}</td>
           <td>${layout.corners}</td>
           <td>${layout.straight}</td>
-          <td>${typeof record.bestLapSeconds === "number" ? formatLapTime(record.bestLapSeconds) : "未记录"}</td>
+          <td>${getBestLapSeconds(record) ? formatLapTime(getBestLapSeconds(record)) : "未记录"}</td>
           <td><span class="training-status-badge ${status.className}">${status.label}</span></td>
         </tr>
       `;
@@ -1381,6 +1556,18 @@ function renderOfficialStats(official, activeLayout) {
 
 function loadTrainingData() {
   try {
+    const rawV12 = localStorage.getItem(TRAINING_STORAGE_KEY_V12);
+    if (rawV12) {
+      const parsedV12 = JSON.parse(rawV12);
+      const layouts = parsedV12?.layouts;
+      if (!layouts || typeof layouts !== "object" || Array.isArray(layouts)) return {};
+      return Object.entries(layouts).reduce((memo, [layoutId, record]) => {
+        if (!layoutId || !record || typeof record !== "object") return memo;
+        memo[layoutId] = sanitizeTrainingRecord(record);
+        return memo;
+      }, {});
+    }
+
     const raw = localStorage.getItem(TRAINING_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
@@ -1443,18 +1630,47 @@ function sanitizeTrainingRecord(record) {
   const status = Object.hasOwn(trainingStatuses, record.status) ? record.status : "not-started";
   const targetDifficulty = Object.hasOwn(difficultyMultipliers, record.targetDifficulty) ? record.targetDifficulty : defaultTargetDifficulty;
   const bestLapSeconds = Number(record.bestLapSeconds);
+  const sessions = sanitizeTrainingSessions(record.sessions);
+  const updatedAt = typeof record.updatedAt === "string" ? record.updatedAt : sessions[0]?.createdAt ?? "";
   return {
     bestLapSeconds: Number.isFinite(bestLapSeconds) && bestLapSeconds > 0 ? bestLapSeconds : null,
     targetDifficulty,
     status,
     favorite: Boolean(record.favorite),
     notes: typeof record.notes === "string" ? record.notes.slice(0, 500) : "",
-    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : "",
+    currentVehicle: typeof record.currentVehicle === "string" ? record.currentVehicle.slice(0, 120) : "",
+    currentSetup: typeof record.currentSetup === "string" ? record.currentSetup.slice(0, 160) : "",
+    updatedAt,
+    sessions,
   };
 }
 
+function sanitizeTrainingSessions(sessions) {
+  if (!Array.isArray(sessions)) return [];
+  return sessions
+    .reduce((memo, session) => {
+      if (!session || typeof session !== "object") return memo;
+      const lapSeconds = Number(session.lapSeconds);
+      if (!Number.isFinite(lapSeconds) || lapSeconds <= 0) return memo;
+      const createdAt = typeof session.createdAt === "string" && Date.parse(session.createdAt) ? session.createdAt : new Date().toISOString();
+      memo.push({
+        id: typeof session.id === "string" ? session.id : createSessionId(),
+        lapSeconds: Number(lapSeconds.toFixed(3)),
+        vehicle: typeof session.vehicle === "string" ? session.vehicle.slice(0, 120) : "",
+        setup: typeof session.setup === "string" ? session.setup.slice(0, 160) : "",
+        mistakes: typeof session.mistakes === "string" ? session.mistakes.slice(0, 220) : "",
+        feeling: typeof session.feeling === "string" ? session.feeling.slice(0, 360) : "",
+        traceId: typeof session.traceId === "string" ? session.traceId.slice(0, 80) : "",
+        createdAt,
+      });
+      return memo;
+    }, [])
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 30);
+}
+
 function persistTrainingData() {
-  localStorage.setItem(TRAINING_STORAGE_KEY, JSON.stringify(trainingData));
+  localStorage.setItem(TRAINING_STORAGE_KEY_V12, JSON.stringify({ version: "1.2", layouts: trainingData }));
 }
 
 function getTrainingRecord(layoutId) {
@@ -1464,7 +1680,10 @@ function getTrainingRecord(layoutId) {
     status: "not-started",
     favorite: false,
     notes: "",
+    currentVehicle: "",
+    currentSetup: "",
     updatedAt: "",
+    sessions: [],
     ...(trainingData[layoutId] ?? {}),
   };
 }
@@ -1477,6 +1696,18 @@ function saveTrainingRecord(layoutId, patch) {
   });
   persistTrainingData();
   updateAfterTrainingChange();
+}
+
+function addTrainingSession(layoutId, session, patch = {}) {
+  const current = getTrainingRecord(layoutId);
+  const nextSession = sanitizeTrainingSessions([{ ...session, id: createSessionId(), createdAt: new Date().toISOString() }])[0];
+  const sessions = nextSession ? [nextSession, ...current.sessions] : current.sessions;
+  saveTrainingRecord(layoutId, {
+    ...patch,
+    sessions,
+    currentVehicle: patch.currentVehicle ?? nextSession?.vehicle ?? current.currentVehicle,
+    currentSetup: patch.currentSetup ?? nextSession?.setup ?? current.currentSetup,
+  });
 }
 
 function resetTrainingRecord(layoutId) {
@@ -1518,13 +1749,21 @@ function handleTrainingAction(action) {
       window.alert(lapInput.error);
       return;
     }
-    const nextStatus = record.status === "not-started" && (lapInput.seconds || getTrainingNotes()) ? "active" : record.status;
-    saveTrainingRecord(activeLayout.id, {
-      bestLapSeconds: lapInput.seconds,
+    const sessionDraft = getSessionDraft();
+    const hasSessionDetail = Boolean(lapInput.seconds || sessionDraft.vehicle || sessionDraft.setup || sessionDraft.mistakes || sessionDraft.feeling);
+    const nextStatus = record.status === "not-started" && (hasSessionDetail || getTrainingNotes()) ? "active" : record.status;
+    const patch = {
       targetDifficulty: getFormTargetDifficulty(),
       notes: getTrainingNotes(),
       status: nextStatus,
-    });
+      currentVehicle: sessionDraft.vehicle || record.currentVehicle,
+      currentSetup: sessionDraft.setup || record.currentSetup,
+    };
+    if (lapInput.seconds) {
+      addTrainingSession(activeLayout.id, { ...sessionDraft, lapSeconds: lapInput.seconds }, patch);
+    } else {
+      saveTrainingRecord(activeLayout.id, patch);
+    }
   }
 }
 
@@ -1640,6 +1879,15 @@ function getTrainingNotes() {
   return (document.querySelector("#trainingNotes")?.value ?? "").trim().slice(0, 500);
 }
 
+function getSessionDraft() {
+  return {
+    vehicle: (document.querySelector("#sessionVehicle")?.value ?? "").trim().slice(0, 120),
+    setup: (document.querySelector("#sessionSetup")?.value ?? "").trim().slice(0, 160),
+    mistakes: (document.querySelector("#sessionMistakes")?.value ?? "").trim().slice(0, 220),
+    feeling: (document.querySelector("#sessionFeeling")?.value ?? "").trim().slice(0, 360),
+  };
+}
+
 function getSegmentedLapTime() {
   const minutesText = document.querySelector("#bestLapMinutes")?.value.trim() ?? "";
   const secondsText = document.querySelector("#bestLapSeconds")?.value.trim() ?? "";
@@ -1737,6 +1985,33 @@ function formatGap(gap) {
   return `慢 ${gap.toFixed(2)}s`;
 }
 
+function getBestLapSeconds(record) {
+  const values = [
+    typeof record.bestLapSeconds === "number" ? record.bestLapSeconds : null,
+    ...record.sessions.map((session) => session.lapSeconds),
+  ].filter((value) => typeof value === "number" && Number.isFinite(value) && value > 0);
+  return values.length ? Math.min(...values) : null;
+}
+
+function getLatestSession(record) {
+  return getRecentSessions(record, 1)[0] ?? null;
+}
+
+function getRecentSessions(record, limit = 5) {
+  return [...(record.sessions ?? [])]
+    .filter((session) => Number.isFinite(session.lapSeconds))
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, limit);
+}
+
+function createSessionId() {
+  return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeVehicleName(value) {
+  return String(value).trim().toLowerCase();
+}
+
 function getTrainingStatusMeta(record) {
   const status = Object.hasOwn(trainingStatuses, record.status) ? record.status : "not-started";
   return {
@@ -1746,12 +2021,11 @@ function getTrainingStatusMeta(record) {
 }
 
 function getTrackTrainingSummary(track) {
-  const official = getOfficialTrack(track);
-  const records = official?.layoutDetails.map((layout) => getTrainingRecord(layout.id)) ?? [];
-  if (records.some((record) => record.favorite)) return { label: "收藏", className: "status-favorite" };
-  if (records.some((record) => record.status === "active")) return { label: "练习中", className: "status-active" };
-  if (records.length && records.every((record) => record.status === "complete")) return { label: "已达标", className: "status-complete" };
-  return { label: "未开始", className: "status-not-started" };
+  const recommendation = getRecommendedLayoutForTrack(track);
+  if (!recommendation) return { label: "未开始", className: "status-not-started" };
+  const status = getTrainingStatusMeta(recommendation.record);
+  if (recommendation.record.favorite && recommendation.record.status !== "complete") return { label: "收藏待练", className: "status-favorite" };
+  return { label: status.label, className: status.className };
 }
 
 function trackMatchesTrainingFilter(track, filter) {
@@ -1780,28 +2054,36 @@ function renderTrainingDashboard() {
   const entries = allLayoutEntries.map((entry) => ({ ...entry, record: getTrainingRecord(entry.layout.id) }));
   const activeCount = entries.filter((entry) => entry.record.status === "active").length;
   const completeCount = entries.filter((entry) => entry.record.status === "complete").length;
-  const recent = entries
-    .filter((entry) => entry.record.updatedAt)
-    .sort((a, b) => Date.parse(b.record.updatedAt) - Date.parse(a.record.updatedAt))[0];
+  const weekCount = getWeekSessionCount(entries);
+  const mostPracticed = getMostPracticedTrack(entries);
+  const biggestGain = getBiggestGain(entries);
+  const recent = getRecentPracticeEntry(entries);
+  const current = getCurrentTrainingEntry(entries);
   const recommendation = getRecommendedLayout(entries);
+  const currentTrackName = current ? getTrackZhName(current.track.name) : "";
   const recentTrackName = recent ? getTrackZhName(recent.track.name) : "";
   const recommendedTrackName = getTrackZhName(recommendation.track.name);
-  trainingUpdatedEl.textContent = recent ? `最近更新 ${formatRelativeDate(recent.record.updatedAt)}` : "本地记录";
+  trainingUpdatedEl.textContent = recent ? `最近练习 ${formatRelativeDate(recent.session.createdAt)}` : "本地记录";
   trainingSummaryEl.innerHTML = `
+    <button class="training-summary-card recommendation-button is-primary" type="button" data-dashboard-track="${(current ?? recommendation).track.name}" data-dashboard-layout="${(current ?? recommendation).layout.id}">
+      <small>今天练什么</small>
+      <strong>${escapeHtml((current ?? recommendation).layout.name)}</strong>
+      <span>${current ? `当前训练 · ${escapeHtml(currentTrackName)}` : `推荐 · ${escapeHtml(recommendedTrackName)}`}</span>
+    </button>
     <div class="training-summary-card">
-      <small>进行中布局</small>
-      <strong>${activeCount}</strong>
-      <span>继续收敛刹车点和出弯节奏</span>
+      <small>本周练习</small>
+      <strong>${weekCount}</strong>
+      <span>进行中 ${activeCount} · 已达标 ${completeCount}</span>
     </div>
     <div class="training-summary-card">
-      <small>已达标布局</small>
-      <strong>${completeCount}</strong>
-      <span>${allLayoutEntries.length} 个官方布局中的完成数</span>
+      <small>最近一次</small>
+      <strong>${recent ? formatLapTime(recent.session.lapSeconds) : "暂无记录"}</strong>
+      <span>${recent ? `${escapeHtml(recentTrackName)} · ${escapeHtml(recent.layout.name)}` : "保存一次练习后这里会接上"}</span>
     </div>
     <div class="training-summary-card">
-      <small>最近练习</small>
-      <strong>${recent ? escapeHtml(recent.layout.name) : "暂无记录"}</strong>
-      <span>${recent ? escapeHtml(recentTrackName) : "保存一次圈速后这里会接上"}</span>
+      <small>复盘信号</small>
+      <strong>${biggestGain ? `进步 ${biggestGain.delta.toFixed(2)}s` : mostPracticed ? escapeHtml(mostPracticed.name) : "待积累"}</strong>
+      <span>${biggestGain ? `${escapeHtml(getTrackZhName(biggestGain.track.name))} · ${escapeHtml(biggestGain.layout.name)}` : mostPracticed ? "本地最常练赛道" : "多练几次后生成反馈"}</span>
     </div>
     <button class="training-summary-card recommendation-button" type="button" data-dashboard-track="${recommendation.track.name}" data-dashboard-layout="${recommendation.layout.id}">
       <small>下一条推荐</small>
@@ -1818,15 +2100,67 @@ function getRecommendedLayout(entries = allLayoutEntries.map((entry) => ({ ...en
       const verification = layoutVerification[entry.layout.id];
       let score = 0;
       if (entry.record.status !== "complete") score += 80;
-      if (entry.record.status === "active") score += 24;
-      if (entry.record.favorite) score += 16;
+      if (entry.record.status === "active") score += 44;
+      if (entry.record.favorite && entry.record.status !== "complete") score += 30;
       if (verification?.status === "verified" || verification?.status === "variant") score += 14;
       if (entry.official.layouts >= 4) score += 10;
       if (entry.layout.lengthValue > 4) score += 8;
       if (entry.record.targetDifficulty === difficultyBonus) score += 6;
+      if (getBestLapSeconds(entry.record)) score += 2;
       return { ...entry, score };
     })
     .sort((a, b) => b.score - a.score || b.layout.lengthValue - a.layout.lengthValue)[0];
+}
+
+function getRecommendedLayoutForTrack(track) {
+  const official = getOfficialTrack(track);
+  const entries = (official?.layoutDetails ?? []).map((layout) => ({ track, official, layout, record: getTrainingRecord(layout.id) }));
+  return entries.length ? getRecommendedLayout(entries) : null;
+}
+
+function getCurrentTrainingEntry(entries) {
+  return entries
+    .filter((entry) => entry.record.status === "active")
+    .sort((a, b) => Date.parse(b.record.updatedAt || 0) - Date.parse(a.record.updatedAt || 0))[0];
+}
+
+function getRecentPracticeEntry(entries) {
+  return entries
+    .flatMap((entry) => getRecentSessions(entry.record, 1).map((session) => ({ ...entry, session })))
+    .sort((a, b) => Date.parse(b.session.createdAt) - Date.parse(a.session.createdAt))[0];
+}
+
+function getWeekSessionCount(entries) {
+  const since = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  return entries.reduce(
+    (total, entry) => total + entry.record.sessions.filter((session) => Date.parse(session.createdAt) >= since).length,
+    0,
+  );
+}
+
+function getMostPracticedTrack(entries) {
+  const counts = new Map();
+  entries.forEach((entry) => {
+    if (!entry.record.sessions.length) return;
+    const current = counts.get(entry.track.name) ?? { name: getTrackZhName(entry.track.name), count: 0 };
+    current.count += entry.record.sessions.length;
+    counts.set(entry.track.name, current);
+  });
+  return [...counts.values()].sort((a, b) => b.count - a.count)[0];
+}
+
+function getBiggestGain(entries) {
+  return entries
+    .map((entry) => {
+      const sessions = getRecentSessions(entry.record, 30).slice().reverse();
+      if (sessions.length < 2) return null;
+      const first = sessions[0].lapSeconds;
+      const best = Math.min(...sessions.map((session) => session.lapSeconds));
+      const delta = first - best;
+      return delta > 0 ? { ...entry, delta } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.delta - a.delta)[0];
 }
 
 function buildAllLayoutEntries() {
@@ -2269,6 +2603,339 @@ function normalizeName(value) {
     .toLowerCase();
 }
 
+function initializeTelemetryPanel() {
+  if (!telemetryPanelEl) return;
+  renderTelemetryPanel();
+  connectTelemetryAgent();
+}
+
+function loadPendingTelemetryLaps() {
+  try {
+    const raw = localStorage.getItem(TELEMETRY_PENDING_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(sanitizePendingTelemetryLap).filter(Boolean).slice(0, 12);
+  } catch {
+    return [];
+  }
+}
+
+function persistPendingTelemetryLaps() {
+  localStorage.setItem(TELEMETRY_PENDING_STORAGE_KEY, JSON.stringify(telemetryState.pendingLaps));
+}
+
+function sanitizePendingTelemetryLap(lap) {
+  if (!lap || typeof lap !== "object") return null;
+  const lapSeconds = Number(lap.lapSeconds);
+  if (!Number.isFinite(lapSeconds) || lapSeconds <= 0) return null;
+  const summary = lap.summary && typeof lap.summary === "object" ? lap.summary : {};
+  return {
+    traceId: typeof lap.traceId === "string" ? lap.traceId : createSessionId(),
+    lapSeconds: Number(lapSeconds.toFixed(3)),
+    vehicle: typeof lap.vehicle === "string" ? lap.vehicle.slice(0, 120) : "",
+    source: typeof lap.source === "string" ? lap.source.slice(0, 80) : "telemetry",
+    timestamp: typeof lap.timestamp === "string" && Date.parse(lap.timestamp) ? lap.timestamp : new Date().toISOString(),
+    summary: {
+      samples: toFiniteNumber(summary.samples, 0),
+      durationSeconds: toFiniteNumber(summary.durationSeconds, lapSeconds),
+      maxSpeedKmh: toFiniteNumber(summary.maxSpeedKmh, 0),
+      avgSpeedKmh: toFiniteNumber(summary.avgSpeedKmh, 0),
+      avgThrottle: toFiniteNumber(summary.avgThrottle, 0),
+      avgBrake: toFiniteNumber(summary.avgBrake, 0),
+      brakeEvents: toFiniteNumber(summary.brakeEvents, 0),
+      heavyBrakePct: toFiniteNumber(summary.heavyBrakePct, 0),
+      fullThrottlePct: toFiniteNumber(summary.fullThrottlePct, 0),
+    },
+  };
+}
+
+function toFiniteNumber(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function archiveTelemetryLap(traceId) {
+  const lap = telemetryState.pendingLaps.find((item) => item.traceId === traceId);
+  const activeLayout = getCurrentActiveLayout();
+  if (!lap || !activeLayout) return;
+
+  const record = getTrainingRecord(activeLayout.id);
+  addTrainingSession(
+    activeLayout.id,
+    {
+      lapSeconds: lap.lapSeconds,
+      vehicle: lap.vehicle || record.currentVehicle || "Telemetry Auto",
+      setup: "Telemetry Auto",
+      mistakes: buildTelemetryMistakes(lap),
+      feeling: buildTelemetryFeeling(lap),
+      traceId: lap.traceId,
+    },
+    {
+      status: record.status === "complete" ? "complete" : "active",
+      targetDifficulty: record.targetDifficulty,
+      currentVehicle: lap.vehicle || record.currentVehicle,
+      currentSetup: "Telemetry Auto",
+    }
+  );
+  dismissTelemetryLap(traceId, false);
+  renderTelemetryPanel();
+}
+
+function dismissTelemetryLap(traceId, shouldRender = true) {
+  telemetryState.pendingLaps = telemetryState.pendingLaps.filter((item) => item.traceId !== traceId);
+  persistPendingTelemetryLaps();
+  if (shouldRender) renderTelemetryPanel();
+}
+
+function buildTelemetryMistakes(lap) {
+  const summary = lap.summary ?? {};
+  if ((summary.heavyBrakePct ?? 0) > 12) return "遥测提示：重刹占比较高，复盘刹车释放点。";
+  if ((summary.brakeEvents ?? 0) > 16) return "遥测提示：刹车事件较多，检查是否有碎刹或修正过多。";
+  return "遥测自动记录：暂无明显失误候选。";
+}
+
+function buildTelemetryFeeling(lap) {
+  const summary = lap.summary ?? {};
+  return [
+    `Telemetry Auto · ${formatLapTime(lap.lapSeconds)}`,
+    `极速 ${summary.maxSpeedKmh ?? "--"} km/h`,
+    `均速 ${summary.avgSpeedKmh ?? "--"} km/h`,
+    `平均油门 ${summary.avgThrottle ?? "--"}%`,
+    `平均刹车 ${summary.avgBrake ?? "--"}%`,
+    `全油占比 ${summary.fullThrottlePct ?? "--"}%`,
+  ].join("；");
+}
+
+function connectTelemetryAgent(force = false) {
+  if (!telemetryPanelEl || !("WebSocket" in window)) {
+    telemetryState.status = "unsupported";
+    renderTelemetryPanel();
+    return;
+  }
+  if (!force && telemetryState.socket && [WebSocket.CONNECTING, WebSocket.OPEN].includes(telemetryState.socket.readyState)) {
+    return;
+  }
+
+  if (telemetryState.socket) {
+    telemetryState.socket.onclose = null;
+    telemetryState.socket.close();
+  }
+
+  clearTimeout(telemetryState.reconnectTimer);
+  telemetryState.status = "connecting";
+  telemetryState.connection = "connecting";
+  renderTelemetryPanel();
+
+  const socket = new WebSocket(TELEMETRY_WS_URL);
+  telemetryState.socket = socket;
+
+  socket.addEventListener("open", () => {
+    telemetryState.status = "online";
+    telemetryState.connection = "connected";
+    telemetryState.lastMessageAt = new Date().toISOString();
+    renderTelemetryPanel();
+  });
+
+  socket.addEventListener("message", (event) => {
+    try {
+      handleTelemetryMessage(JSON.parse(event.data));
+    } catch {
+      // Ignore malformed frames from experimental local agents.
+    }
+  });
+
+  socket.addEventListener("close", () => {
+    if (telemetryState.socket !== socket) return;
+    telemetryState.status = "offline";
+    telemetryState.connection = "manual_mode";
+    renderTelemetryPanel();
+    telemetryState.reconnectTimer = window.setTimeout(() => connectTelemetryAgent(), 3000);
+  });
+
+  socket.addEventListener("error", () => {
+    telemetryState.status = "offline";
+    telemetryState.connection = "agent_unreachable";
+    renderTelemetryPanel();
+  });
+}
+
+function handleTelemetryMessage(message) {
+  telemetryState.lastMessageAt = new Date().toISOString();
+  if (message.type === "agent_status") {
+    telemetryState.lastStatus = message;
+    telemetryState.status = message.connection === "receiving_decoded" ? "online" : "waiting";
+    telemetryState.connection = message.connection ?? "connected";
+    renderTelemetryPanel();
+    return;
+  }
+  if (message.type === "lap_completed") {
+    handleTelemetryLapCompleted(message);
+    return;
+  }
+  if (message.type === "telemetry_tick") {
+    telemetryState.lastTick = message.telemetry;
+    telemetryState.status = "online";
+    telemetryState.connection = "receiving_decoded";
+    if (message.samplesPerSecond != null) {
+      telemetryState.lastStatus = {
+        ...(telemetryState.lastStatus ?? {}),
+        samplesPerSecond: message.samplesPerSecond,
+        packetCount: message.packetCount,
+        decodedCount: message.decodedCount,
+      };
+    }
+    renderTelemetryPanel();
+  }
+}
+
+function handleTelemetryLapCompleted(message) {
+  const lap = sanitizePendingTelemetryLap(message);
+  if (!lap) return;
+  telemetryState.pendingLaps = [lap, ...telemetryState.pendingLaps.filter((item) => item.traceId !== lap.traceId)].slice(0, 12);
+  persistPendingTelemetryLaps();
+  renderTelemetryPanel();
+}
+
+function renderTelemetryPanel() {
+  if (!telemetryPanelEl) return;
+  const tick = telemetryState.lastTick;
+  const status = telemetryState.lastStatus ?? {};
+  const statusLabel = getTelemetryStatusLabel();
+  const speed = tick?.speedKmh == null ? "--" : tick.speedKmh.toFixed(1);
+  const rpm = tick?.rpm == null ? "--" : Math.round(tick.rpm).toLocaleString("en-US");
+  const gear = tick?.currentGear == null ? "--" : formatTelemetryGear(tick.currentGear);
+  const throttle = clampTelemetryPercent(tick?.throttle);
+  const brake = clampTelemetryPercent(tick?.brake);
+  const lap = tick?.currentLap == null ? "--" : tick.currentLap;
+  const sampleRate = status.samplesPerSecond == null ? "--" : `${status.samplesPerSecond} Hz`;
+  const packetCount = status.decodedCount == null ? "--" : status.decodedCount.toLocaleString("en-US");
+  const source = status.ps5Ip ? `PS5 ${status.ps5Ip}` : "等待本地 agent";
+
+  telemetryPanelEl.innerHTML = `
+    <div class="section-title telemetry-title">
+      <div>
+        <h2>遥测连接</h2>
+        <p>本地 telemetry-agent 实时读取 GT7 UDP 数据，实验性功能，不上传数据。</p>
+      </div>
+      <button type="button" class="telemetry-connect" data-telemetry-action="connect">重新连接</button>
+    </div>
+    <div class="telemetry-live-grid">
+      <article class="telemetry-card telemetry-status-card ${statusLabel.className}">
+        <small>连接状态</small>
+        <strong>${statusLabel.label}</strong>
+        <span>${escapeHtml(source)} · ${escapeHtml(sampleRate)}</span>
+      </article>
+      <article class="telemetry-card">
+        <small>车速</small>
+        <strong>${speed}<em> km/h</em></strong>
+        <span>采样 ${escapeHtml(packetCount)} 包</span>
+      </article>
+      <article class="telemetry-card">
+        <small>挡位 / 转速</small>
+        <strong>${gear}<em> / ${rpm} rpm</em></strong>
+        <span>当前圈 ${escapeHtml(String(lap))}</span>
+      </article>
+      <article class="telemetry-card telemetry-inputs">
+        <small>油门 / 刹车</small>
+        <div class="telemetry-bars">
+          ${renderTelemetryBar("油门", throttle, "throttle")}
+          ${renderTelemetryBar("刹车", brake, "brake")}
+        </div>
+      </article>
+    </div>
+    ${renderPendingTelemetryLaps()}
+  `;
+}
+
+function renderPendingTelemetryLaps() {
+  if (!telemetryState.pendingLaps.length) {
+    return `
+      <div class="telemetry-pending empty">
+        <span>待归档遥测圈</span>
+        <strong>暂无</strong>
+        <small>完成一圈后会出现在这里，确认赛道布局后再写入训练记录。</small>
+      </div>
+    `;
+  }
+
+  const activeLayout = getCurrentActiveLayout();
+  const activeTrack = trackByName.get(state.selected);
+  const targetLabel = activeLayout && activeTrack
+    ? `${getTrackZhName(activeTrack.name)} · ${activeLayout.name}`
+    : "当前布局";
+
+  return `
+    <div class="telemetry-pending">
+      <div class="telemetry-pending-head">
+        <span>待归档遥测圈</span>
+        <small>目标：${escapeHtml(targetLabel)}</small>
+      </div>
+      <div class="telemetry-lap-list">
+        ${telemetryState.pendingLaps.map(renderPendingTelemetryLap).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderPendingTelemetryLap(lap) {
+  return `
+    <article class="telemetry-lap-card">
+      <div>
+        <strong>${formatLapTime(lap.lapSeconds)}</strong>
+        <span>${escapeHtml(formatTelemetrySummary(lap))}</span>
+      </div>
+      <div class="telemetry-lap-actions">
+        <button type="button" data-telemetry-action="archive-lap" data-telemetry-lap-id="${escapeHtml(lap.traceId)}">归档到当前布局</button>
+        <button type="button" data-telemetry-action="dismiss-lap" data-telemetry-lap-id="${escapeHtml(lap.traceId)}">忽略</button>
+      </div>
+    </article>
+  `;
+}
+
+function formatTelemetrySummary(lap) {
+  const summary = lap.summary ?? {};
+  const parts = [
+    `极速 ${summary.maxSpeedKmh ?? "--"} km/h`,
+    `均速 ${summary.avgSpeedKmh ?? "--"} km/h`,
+    `刹车 ${summary.brakeEvents ?? 0} 次`,
+    `全油 ${summary.fullThrottlePct ?? 0}%`,
+  ];
+  return parts.join(" · ");
+}
+
+function getTelemetryStatusLabel() {
+  if (telemetryState.status === "online") return { label: "实时在线", className: "is-online" };
+  if (telemetryState.status === "waiting") return { label: "等待遥测", className: "is-waiting" };
+  if (telemetryState.status === "connecting") return { label: "连接中", className: "is-waiting" };
+  if (telemetryState.status === "unsupported") return { label: "浏览器不支持", className: "is-offline" };
+  return { label: "手动模式", className: "is-offline" };
+}
+
+function clampTelemetryPercent(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.min(100, Math.max(0, number));
+}
+
+function renderTelemetryBar(label, value, type) {
+  const width = value == null ? 0 : value;
+  const text = value == null ? "--" : `${Math.round(value)}%`;
+  return `
+    <div class="telemetry-bar ${type}">
+      <span>${label}</span>
+      <div><i style="width: ${width}%"></i></div>
+      <b>${text}</b>
+    </div>
+  `;
+}
+
+function formatTelemetryGear(value) {
+  if (value === 0) return "N/R";
+  if (value > 10) return "--";
+  return String(value);
+}
+
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -2278,3 +2945,4 @@ function formatTime(totalSeconds) {
 applyHashRoute();
 initializeList();
 applyFilters();
+initializeTelemetryPanel();
