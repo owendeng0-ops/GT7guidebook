@@ -847,6 +847,167 @@ const CORNER_CALIBRATION_STORAGE_KEY = "gt7-track-atlas-corner-calibration-v1";
 const TELEMETRY_WS_URL = "ws://127.0.0.1:8787/live";
 const TELEMETRY_HEALTH_URL = "http://127.0.0.1:8787/health";
 const TELEMETRY_PENDING_STORAGE_KEY = "gt7-track-atlas-telemetry-pending-v1";
+const TELEMETRY_DB_NAME = "gt7-track-atlas-telemetry-v1";
+const TELEMETRY_DB_VERSION = 1;
+const TELEMETRY_TRACE_STORE = "lap-traces";
+const TELEMETRY_TEMPLATE_STORE = "layout-templates";
+const TELEMETRY_MATCH_THRESHOLDS = {
+  suggested: 0.85,
+  confirm: 0.65,
+};
+const LICENSE_TARGET_STORAGE_KEY = "gt7-track-atlas-license-targets-v1";
+const LICENSE_SCOPE_STORAGE_KEY = "gt7-track-atlas-license-scopes-v1";
+const LICENSE_LEVELS = ["B", "A", "IB", "IA", "S"];
+const LICENSE_SERIES = [
+  { id: "normal", label: "普通驾照" },
+  { id: "master", label: "Master 驾照" },
+];
+const LICENSE_TESTS = [
+  { id: "B-1", level: "B", title: "Starting & Stopping 1", type: "start-stop", car: "Mazda Demio XD Touring '15", track: "High Speed Ring", gold: 20.0, silver: 21.6, bronze: 22.0 },
+  { id: "B-2", level: "B", title: "Starting & Stopping 2", type: "start-stop", car: "Mitsubishi GTO Twin Turbo '91", track: "High Speed Ring", gold: 16.5, silver: 16.9, bronze: 18.1 },
+  { id: "B-3", level: "B", title: "Cornering Basics 1", type: "corner-basic", car: "Daihatsu Copen Active Top '02", track: "Alsace - Village", gold: 14.6, silver: 15.0, bronze: 16.2 },
+  { id: "B-4", level: "B", title: "Cornering Basics 2", type: "corner-basic", car: "Audi TT Coupe 3.2 quattro '03", track: "Alsace - Village", gold: 11.5, silver: 11.9, bronze: 13.0 },
+  { id: "B-5", level: "B", title: "Cornering Basics 3", type: "corner-basic", car: "Autobianchi A112 Abarth '85", track: "Tsukuba Circuit", gold: 12.7, silver: 13.0, bronze: 13.9 },
+  { id: "B-6", level: "B", title: "Cornering Basics 4", type: "corner-basic", car: "Nissan Fairlady Z (Z34) '08", track: "Tsukuba Circuit", gold: 10.7, silver: 11.0, bronze: 11.7 },
+  { id: "B-7", level: "B", title: "Cornering Basics 5", type: "corner-basic", car: "Toyota GR86 RZ '21", track: "Trial Mountain Circuit", gold: 17.3, silver: 17.8, bronze: 19.1 },
+  { id: "B-8", level: "B", title: "Cornering Basics 6", type: "corner-basic", car: "Mitsubishi Lancer Evolution IV GSR '96", track: "Mount Panorama", gold: 13.4, silver: 13.8, bronze: 14.8 },
+  { id: "B-9", level: "B", title: "Cornering Basics 7", type: "corner-basic", car: "Honda Civic Type R Limited Edition (FK8) '20", track: "Dragon Trail - Seaside", gold: 17.3, silver: 18.8, bronze: 19.0 },
+  { id: "B-10", level: "B", title: "Driving Basics", type: "combined", car: "Renault Sport Clio R.S. 220 EDC Trophy '16", track: "Tsukuba Circuit", gold: 24.6, silver: 25.2, bronze: 27.0 },
+  { id: "A-1", level: "A", title: "Racing Line: Beginner 1", type: "racing-line", car: "Subaru BRZ STI Sport '18", track: "Tsukuba Circuit", gold: 17.2, silver: 17.6, bronze: 18.6 },
+  { id: "A-2", level: "A", title: "Racing Line: Beginner 2", type: "racing-line", car: "Volkswagen Scirocco R '10", track: "Dragon Trail - Gardens", gold: 17.8, silver: 18.4, bronze: 19.6 },
+  { id: "A-3", level: "A", title: "Racing Line: Beginner 3", type: "racing-line", car: "Abarth 500 '09", track: "Autodromo Nazionale Monza", gold: 21.5, silver: 22.1, bronze: 23.7 },
+  { id: "A-4", level: "A", title: "Urban Tracks 1", type: "urban", car: "Honda CIVIC TYPE R (EK) '98", track: "Tokyo Expressway - Central Clockwise", gold: 29.6, silver: 30.5, bronze: 32.6 },
+  { id: "A-5", level: "A", title: "Cornering in the Wet: Beginner", type: "wet", car: "Nissan 180SX Type X '96", track: "Circuit de Spa-Francorchamps", gold: 29.4, silver: 30.2, bronze: 32.5 },
+  { id: "A-6", level: "A", title: "Consecutive Corners: Beginner 1", type: "consecutive", car: "Alfa Romeo 4C '14", track: "Autodromo Nazionale Monza", gold: 18.2, silver: 18.8, bronze: 20.2 },
+  { id: "A-7", level: "A", title: "Consecutive Corners: Beginner 2", type: "consecutive", car: "BMW M3 '03", track: "Circuit de Barcelona-Catalunya Grand Prix", gold: 25.0, silver: 25.8, bronze: 27.5 },
+  { id: "A-8", level: "A", title: "Dirt Driving: Beginner", type: "dirt", car: "Toyota Tundra TRD Pro '19", track: "Colorado Springs - Lake", gold: 20.8, silver: 21.4, bronze: 23.1 },
+  { id: "A-9", level: "A", title: "Hairpins", type: "hairpin", car: "Honda NSX Type R '92", track: "Suzuka Circuit", gold: 16.9, silver: 17.4, bronze: 18.5 },
+  { id: "A-10", level: "A", title: "Racing Line Basics", type: "racing-line", car: "Toyota SUPRA RZ '97", track: "Autopolis International Racing Course", gold: 28.3, silver: 29.1, bronze: 31.0 },
+  { id: "IB-1", level: "IB", title: "Racing Line: Intermediate 1", type: "racing-line", car: "Chevrolet Corvette Stingray (C7) '14", track: "Willow Springs International Raceway: Big Willow", gold: 17.2, silver: 17.7, bronze: 19.0 },
+  { id: "IB-2", level: "IB", title: "Racing Line: Intermediate 2", type: "racing-line", car: "Ferrari F430 '06", track: "Daytona Road Course", gold: 14.7, silver: 15.2, bronze: 16.3 },
+  { id: "IB-3", level: "IB", title: "High Speed Corners", type: "high-speed", car: "Lexus RC F '14", track: "Fuji International Speedway", gold: 36.0, silver: 37.7, bronze: 40.4 },
+  { id: "IB-4", level: "IB", title: "Urban Tracks 2", type: "urban", car: "Nissan SKYLINE GT-R V spec II Nur (R34) '02", track: "Tokyo Expressway - East Clockwise", gold: 30.8, silver: 31.7, bronze: 33.8 },
+  { id: "IB-5", level: "IB", title: "Dirt Driving: Intermediate", type: "dirt", car: "Mitsubishi Lancer Evolution V GSR '98", track: "Sardegna - Windmills", gold: 35.4, silver: 36.4, bronze: 39.3 },
+  { id: "IB-6", level: "IB", title: "Cornering in the Wet: Intermediate", type: "wet", car: "BMW M3 Sport Evolution '89", track: "Red Bull Ring", gold: 36.4, silver: 37.5, bronze: 40.3 },
+  { id: "IB-7", level: "IB", title: "Racing Line: Intermediate 3", type: "racing-line", car: "Porsche Taycan Turbo S '19", track: "Nurburgring Nordschleife", gold: 27.5, silver: 28.3, bronze: 30.2 },
+  { id: "IB-8", level: "IB", title: "Consecutive Corners: Intermediate", type: "consecutive", car: "Mercedes-AMG C 63 S '15", track: "Dragon Trail - Gardens", gold: 19.3, silver: 20.0, bronze: 21.3 },
+  { id: "IB-9", level: "IB", title: "Corners with Elevation Changes 1", type: "elevation", car: "BMW 3.0 CSL '73", track: "Alsace - Test Course", gold: 18.4, silver: 19.0, bronze: 20.3 },
+  { id: "IB-10", level: "IB", title: "Applying the Racing Line", type: "combined", car: "Nissan SKYLINE GT-R V spec II (R32) '94", track: "Trial Mountain Circuit", gold: 41.2, silver: 42.4, bronze: 45.2 },
+  { id: "IA-1", level: "IA", title: "Racing Line: Expert", type: "racing-line", car: "Aston Martin DB11 '16", track: "Suzuka Circuit", gold: 17.3, silver: 17.8, bronze: 19.1 },
+  { id: "IA-2", level: "IA", title: "Consecutive Corners: Expert 1", type: "consecutive", car: "Lamborghini Diablo GT '00", track: "Tokyo Expressway - South Counterclockwise", gold: 25.1, silver: 25.9, bronze: 27.7 },
+  { id: "IA-3", level: "IA", title: "Dirt Driving: Expert", type: "dirt", car: "Ford Focus Gr.B Rally Car", track: "Fisherman's Ranch", gold: 34.0, silver: 35.0, bronze: 37.8 },
+  { id: "IA-4", level: "IA", title: "Consecutive Corners: Expert 2", type: "consecutive", car: "Ferrari Testarossa '91", track: "Autodrome Lago Maggiore - GP", gold: 33.6, silver: 34.6, bronze: 36.9 },
+  { id: "IA-5", level: "IA", title: "Consecutive Corners: Expert 3", type: "consecutive", car: "Nissan R92CP '92", track: "24 Heures du Mans race track", gold: 28.4, silver: 29.2, bronze: 31.3 },
+  { id: "IA-6", level: "IA", title: "Corners with Elevation Changes 1", type: "elevation", car: "Dodge Viper GTS '02", track: "WeatherTech Raceway Laguna Seca", gold: 20.0, silver: 20.6, bronze: 22.0 },
+  { id: "IA-7", level: "IA", title: "Cornering in the Wet: Expert", type: "wet", car: "Alpine A110 '17", track: "Tsukuba Circuit", gold: 26.9, silver: 27.7, bronze: 29.7 },
+  { id: "IA-8", level: "IA", title: "Tricky Consecutive Corners 1", type: "consecutive", car: "Toyota GR Supra RZ '20", track: "Autodrome Lago Maggiore - East End Reverse", gold: 22.9, silver: 23.6, bronze: 25.4 },
+  { id: "IA-9", level: "IA", title: "Tricky Consecutive Corners 2", type: "consecutive", car: "Renault Sport Megane Trophy '11", track: "Deep Forest Raceway", gold: 38.8, silver: 40.0, bronze: 42.8 },
+  { id: "IA-10", level: "IA", title: "Tricky Consecutive Corners 3", type: "consecutive", car: "Mercedes-AMG GT R '17", track: "Nurburgring Nordschleife", gold: 55.7, silver: 57.5, bronze: 61.6 },
+  { id: "S-1", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Lamborghini Aventador LP 750-4 Superveloce '15", track: "High Speed Ring", gold: 71.5, silver: 73.6, bronze: 79.0 },
+  { id: "S-2", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Ferrari F50 '95", track: "Autodromo Nazionale Monza", gold: 119.0, silver: 122.8, bronze: 131.0 },
+  { id: "S-3", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Nissan SILVIA spec-R AERO (S15) Touring Car", track: "Tsukuba Circuit", gold: 58.6, silver: 60.4, bronze: 64.7 },
+  { id: "S-4", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Toyota Supra GT500 '97", track: "Tokyo Expressway - South Counterclockwise", gold: 120.0, silver: 123.5, bronze: 132.2 },
+  { id: "S-5", level: "S", title: "One Lap Time Attack", type: "full-lap dirt", car: "Toyota GR Yaris 1st Edition RZ High Performance '20", track: "Sardegna - Windmills", gold: 86.7, silver: 88.9, bronze: 94.8 },
+  { id: "S-6", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Ford Shelby GT350R '16", track: "Trial Mountain Circuit", gold: 129.5, silver: 133.3, bronze: 142.2 },
+  { id: "S-7", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Dallara SF19 Super Formula / Honda '19", track: "WeatherTech Raceway Laguna Seca", gold: 67.9, silver: 70.0, bronze: 74.7 },
+  { id: "S-8", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Pagani Zonda R '09", track: "Autodromo de Interlagos", gold: 91.4, silver: 94.1, bronze: 100.8 },
+  { id: "S-9", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Nissan GT-R GT500 '08", track: "Deep Forest Raceway", gold: 81.8, silver: 85.5, bronze: 91.6 },
+  { id: "S-10", level: "S", title: "One Lap Time Attack", type: "full-lap wet", car: "Porsche 917K '70", track: "Circuit de Spa-Francorchamps (wet)", gold: 144.0, silver: 150.5, bronze: 161.5 },
+  { id: "MB-1", displayId: "Master B-1", series: "master", level: "B", title: "Starting & Stopping 1 (Wet Tracks)", type: "start-stop wet", car: "Mazda3 X Burgundy Selection '19", track: "High Speed Ring (wet)", gold: 19.3, silver: 19.9, bronze: 21.4 },
+  { id: "MB-2", displayId: "Master B-2", series: "master", level: "B", title: "Starting & Stopping 2 (Wet Tracks)", type: "start-stop wet", car: "Dodge Viper GTS '13", track: "High Speed Ring (wet)", gold: 16.25, silver: 16.8, bronze: 18.0 },
+  { id: "MB-3", displayId: "Master B-3", series: "master", level: "B", title: "Cornering Basics 1", type: "corner-basic", car: "Honda S660 '15", track: "Circuit de Sainte-Croix - B", gold: 17.24, silver: 17.7, bronze: 18.9 },
+  { id: "MB-4", displayId: "Master B-4", series: "master", level: "B", title: "Cornering Basics 2", type: "corner-basic", car: "Honda S2000 '99", track: "Circuit de Sainte-Croix - B", gold: 16.39, silver: 16.9, bronze: 18.0 },
+  { id: "MB-5", displayId: "Master B-5", series: "master", level: "B", title: "Cornering: Intermediate 1", type: "corner-basic", car: "Nissan SILVIA spec-R AERO (S15) '02", track: "Red Bull Ring", gold: 16.47, silver: 16.9, bronze: 18.0 },
+  { id: "MB-6", displayId: "Master B-6", series: "master", level: "B", title: "Cornering: Intermediate 2", type: "corner-basic", car: "Porsche 911 Carrera RS (964) '92", track: "Circuit de Spa-Francorchamps", gold: 16.86, silver: 17.4, bronze: 18.4 },
+  { id: "MB-7", displayId: "Master B-7", series: "master", level: "B", title: "Cornering: Intermediate 3", type: "corner-basic", car: "Mercedes-Benz 190 E 2.5 - 16 Evolution II '91", track: "Deep Forest Raceway", gold: 17.75, silver: 18.4, bronze: 19.6 },
+  { id: "MB-8", displayId: "Master B-8", series: "master", level: "B", title: "Consecutive Corners: Intermediate 1", type: "consecutive", car: "Mazda RX-8 Spirit R '12", track: "Suzuka Circuit", gold: 17.92, silver: 18.5, bronze: 19.7 },
+  { id: "MB-9", displayId: "Master B-9", series: "master", level: "B", title: "Consecutive Corners: Intermediate 2", type: "consecutive", car: "Ford Sierra RS 500 Cosworth '87", track: "Michelin Raceway Road Atlanta", gold: 20.63, silver: 21.4, bronze: 22.8 },
+  { id: "MB-10", displayId: "Master B-10", series: "master", level: "B", title: "Final Exam", type: "combined", car: "1932 Ford Roadster '63", track: "WeatherTech Raceway Laguna Seca", gold: 30.55, silver: 31.4, bronze: 33.5 },
+  { id: "MA-1", displayId: "Master A-1", series: "master", level: "A", title: "Racing Line Basics 1", type: "racing-line", car: "Peugeot 208 GTi by Peugeot Sport '14", track: "Dragon Trail - Seaside", gold: 26.32, silver: 27.1, bronze: 28.9 },
+  { id: "MA-2", displayId: "Master A-2", series: "master", level: "A", title: "Racing Line Basics 2", type: "racing-line", car: "Mazda RX-7 Spirit R Type A (FD) '02", track: "Dragon Trail - Seaside", gold: 25.46, silver: 28.3, bronze: 30.2 },
+  { id: "MA-3", displayId: "Master A-3", series: "master", level: "A", title: "Hairpins", type: "hairpin", car: "Alfa Romeo Giulia GTAm '20", track: "Autopolis International Racing Course", gold: 19.0, silver: 19.5, bronze: 20.9 },
+  { id: "MA-4", displayId: "Master A-4", series: "master", level: "A", title: "Urban Tracks 1", type: "urban", car: "Ferrari F12berlinetta '12", track: "Tokyo Expressway - Central Clockwise", gold: 27.38, silver: 28.1, bronze: 30.0 },
+  { id: "MA-5", displayId: "Master A-5", series: "master", level: "A", title: "Snow Driving: Beginner", type: "snow", car: "Ford Focus RS '18", track: "Lake Louise Tri-Oval", gold: 17.8, silver: 18.4, bronze: 20.0 },
+  { id: "MA-6", displayId: "Master A-6", series: "master", level: "A", title: "Racing Line: Intermediate 1", type: "racing-line", car: "Genesis G70 3.3T AWD Prestige Package '22", track: "Grand Valley Highway 1", gold: 27.58, silver: 28.4, bronze: 30.6 },
+  { id: "MA-7", displayId: "Master A-7", series: "master", level: "A", title: "Racing Line: Intermediate 2", type: "racing-line", car: "BMW M3 Coupe '07", track: "Dragon Trail - Gardens", gold: 18.12, silver: 18.7, bronze: 19.9 },
+  { id: "MA-8", displayId: "Master A-8", series: "master", level: "A", title: "Racing Line: Intermediate 3", type: "racing-line", car: "Nissan SKYLINE GT-R V spec (R33) '97", track: "Autodrome Lago Maggiore - Full Course", gold: 25.2, silver: 25.9, bronze: 27.8 },
+  { id: "MA-9", displayId: "Master A-9", series: "master", level: "A", title: "Cornering: Intermediate 1 (Wet Tracks)", type: "wet", car: "Porsche 911 Carrera RS (993) '95", track: "Tokyo Expressway - East Clockwise", gold: 32.0, silver: 33.0, bronze: 35.2 },
+  { id: "MA-10", displayId: "Master A-10", series: "master", level: "A", title: "Final Exam", type: "combined", car: "Mercedes-AMG GT Black Series '20", track: "Autopolis International Racing Course", gold: 47.15, silver: 48.6, bronze: 51.9 },
+  { id: "MIB-1", displayId: "Master IB-1", series: "master", level: "IB", title: "High Speed Corners 1", type: "high-speed", car: "Ferrari GTO '84", track: "Autodromo Nazionale Monza", gold: 22.02, silver: 22.7, bronze: 24.2 },
+  { id: "MIB-2", displayId: "Master IB-2", series: "master", level: "IB", title: "High Speed Corners 2", type: "high-speed", car: "Chevrolet Corvette ZR-1 (C4) '89", track: "Willow Springs International Raceway: Big Willow", gold: 28.75, silver: 29.6, bronze: 31.8 },
+  { id: "MIB-3", displayId: "Master IB-3", series: "master", level: "IB", title: "Snow Driving: Intermediate 1", type: "snow", car: "Subaru IMPREZA Premium Sport Coupe 22B-STi Version '98", track: "Lake Louise Long Track", gold: 36.62, silver: 37.8, bronze: 40.4 },
+  { id: "MIB-4", displayId: "Master IB-4", series: "master", level: "IB", title: "Racing Line: Expert 1", type: "racing-line", car: "Honda NSX Type R '02", track: "Suzuka Circuit", gold: 29.29, silver: 30.2, bronze: 32.2 },
+  { id: "MIB-5", displayId: "Master IB-5", series: "master", level: "IB", title: "Racing Line: Expert 2", type: "racing-line", car: "Lexus LC500 '17", track: "Watkins Glen Long Course", gold: 49.09, silver: 50.6, bronze: 54.0 },
+  { id: "MIB-6", displayId: "Master IB-6", series: "master", level: "IB", title: "Racing Line: Expert 3", type: "racing-line", car: "Porsche Cayman GT4 '16", track: "Autodrome Lago Maggiore - Full Course", gold: 44.34, silver: 45.7, bronze: 48.8 },
+  { id: "MIB-7", displayId: "Master IB-7", series: "master", level: "IB", title: "Racing Line: Expert 4", type: "racing-line", car: "Maserati MC20 '20", track: "Circuit de Spa-Francorchamps", gold: 39.28, silver: 40.4, bronze: 43.7 },
+  { id: "MIB-8", displayId: "Master IB-8", series: "master", level: "IB", title: "Cornering: Intermediate 2 (Wet Tracks)", type: "wet", car: "BMW M2 Competition '18", track: "Suzuka Circuit", gold: 27.92, silver: 28.8, bronze: 31.0 },
+  { id: "MIB-9", displayId: "Master IB-9", series: "master", level: "IB", title: "Snow Driving: Intermediate 2", type: "snow", car: "Porsche 959 '87", track: "Lake Louise Long Track Reverse", gold: 25.99, silver: 27.0, bronze: 29.0 },
+  { id: "MIB-10", displayId: "Master IB-10", series: "master", level: "IB", title: "Final Exam", type: "combined", car: "Lexus LFA '10", track: "Fuji International Speedway", gold: 53.25, silver: 54.8, bronze: 59.0 },
+  { id: "MIA-1", displayId: "Master IA-1", series: "master", level: "IA", title: "Tricky Consecutive Corners 1", type: "consecutive", car: "Chevrolet Corvette C7 ZR1 '19", track: "Michelin Raceway Road Atlanta", gold: 32.83, silver: 33.7, bronze: 36.1 },
+  { id: "MIA-2", displayId: "Master IA-2", series: "master", level: "IA", title: "Tricky Consecutive Corners 2", type: "consecutive", car: "Chevrolet Corvette (C1) '58", track: "Grand Valley Highway 1", gold: 26.1, silver: 26.9, bronze: 28.8 },
+  { id: "MIA-3", displayId: "Master IA-3", series: "master", level: "IA", title: "Urban Tracks 2", type: "urban", car: "Subaru Impreza Sedan WRX STi '04", track: "Tokyo Expressway - South Clockwise", gold: 27.68, silver: 28.5, bronze: 30.3 },
+  { id: "MIA-4", displayId: "Master IA-4", series: "master", level: "IA", title: "Corners with Elevation Changes 1", type: "elevation", car: "Mercedes-Benz SLR McLaren '09", track: "Nurburgring Nordschleife", gold: 50.4, silver: 51.6, bronze: 55.3 },
+  { id: "MIA-5", displayId: "Master IA-5", series: "master", level: "IA", title: "Corners with Elevation Changes 2", type: "elevation", car: "Nissan SKYLINE 2000GT-R (KPGC110) '73", track: "Mount Panorama Motor Racing Circuit", gold: 37.27, silver: 38.2, bronze: 40.8 },
+  { id: "MIA-6", displayId: "Master IA-6", series: "master", level: "IA", title: "Cornering: Expert (Wet Tracks)", type: "wet", car: "Ferrari 512 BB '76", track: "24 Heures du Mans race track", gold: 37.36, silver: 38.3, bronze: 40.9 },
+  { id: "MIA-7", displayId: "Master IA-7", series: "master", level: "IA", title: "Tricky Consecutive Corners 3", type: "consecutive", car: "Dallara SF23 Super Formula / Honda '23", track: "Circuit de Barcelona-Catalunya Grand Prix No Chicane", gold: 27.27, silver: 28.0, bronze: 29.9 },
+  { id: "MIA-8", displayId: "Master IA-8", series: "master", level: "IA", title: "Tricky Consecutive Corners 4", type: "consecutive", car: "Lamborghini Countach LP400 '74", track: "Grand Valley Highway 1", gold: 38.08, silver: 39.1, bronze: 41.9 },
+  { id: "MIA-9", displayId: "Master IA-9", series: "master", level: "IA", title: "Snow Driving: Expert", type: "snow", car: "Toyota CELICA GT-FOUR Rally Car (ST205) '95", track: "Lake Louise Long Track", gold: 48.55, silver: 49.9, bronze: 53.6 },
+  { id: "MIA-10", displayId: "Master IA-10", series: "master", level: "IA", title: "Final Exam", type: "combined", car: "Porsche 962 C '88", track: "Nurburgring Nordschleife", gold: 56.65, silver: 58.3, bronze: 62.2 },
+  { id: "MS-1", displayId: "Master S-1", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Honda Civic Type R (FL5) '22", track: "Mount Panorama Motor Racing Circuit", gold: 147.1, silver: 151.1, bronze: 162.4 },
+  { id: "MS-2", displayId: "Master S-2", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap rallycross", car: "Porsche 911 Turbo (930) '81", track: "Circuit de Barcelona-Catalunya Rallycross Layout", gold: 46.4, silver: 47.8, bronze: 51.0 },
+  { id: "MS-3", displayId: "Master S-3", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Honda RA272 '65", track: "Circuit de Barcelona-Catalunya Grand Prix No Chicane", gold: 110.6, silver: 113.6, bronze: 122.1 },
+  { id: "MS-4", displayId: "Master S-4", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Jaguar XJ220 '92", track: "Grand Valley Highway 1", gold: 121.5, silver: 124.8, bronze: 133.8 },
+  { id: "MS-5", displayId: "Master S-5", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap snow", car: "Peugeot 205 Turbo 16 Evolution 2 '86", track: "Lake Louise Long Track", gold: 101.5, silver: 104.5, bronze: 111.5 },
+  { id: "MS-6", displayId: "Master S-6", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Porsche 911 GT1 Strassenversion '97", track: "Michelin Raceway Road Atlanta", gold: 86.6, silver: 89.0, bronze: 95.0 },
+  { id: "MS-7", displayId: "Master S-7", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Shelby Cobra Daytona Coupe '64", track: "Watkins Glen Long Course", gold: 126.0, silver: 129.4, bronze: 138.8 },
+  { id: "MS-8", displayId: "Master S-8", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Mercedes-Benz CLK-LM '98", track: "Circuit de Spa-Francorchamps", gold: 129.0, silver: 133.6, bronze: 143.2 },
+  { id: "MS-9", displayId: "Master S-9", series: "master", level: "S", title: "One Lap Time Attack", type: "full-lap", car: "Aston Martin Valkyrie '21", track: "Red Bull Ring", gold: 79.55, silver: 82.0, bronze: 87.5 },
+  { id: "MS-10", displayId: "Master S-10", series: "master", level: "S", title: "Final Exam", type: "full-lap", car: "McLaren MP4/4 '88", track: "Suzuka Circuit", gold: 104.0, silver: 108.2, bronze: 116.5 },
+];
+const LICENSE_TEST_BY_ID = new Map(LICENSE_TESTS.map((test) => [test.id, test]));
+const LICENSE_TRACK_TO_ATLAS_TRACK = {
+  "24 heures du mans race track": "24 Heures du Mans Racing Circuit",
+  "alsace test course": "Alsace",
+  "alsace village": "Alsace",
+  "autodrome lago maggiore east end": "Autodrome Lago Maggiore",
+  "autodrome lago maggiore full course": "Autodrome Lago Maggiore",
+  "autodrome lago maggiore gp": "Autodrome Lago Maggiore",
+  "autodromo nazionale monza": "Autodromo Nazionale Monza",
+  "autodromo de interlagos": "Autódromo de Interlagos",
+  "circuit de barcelona catalunya grand prix": "Circuit de Barcelona-Catalunya",
+  "circuit de barcelona catalunya grand prix no chicane": "Circuit de Barcelona-Catalunya",
+  "circuit de barcelona catalunya rallycross layout": "Circuit de Barcelona-Catalunya",
+  "circuit de spa francorchamps": "Circuit de Spa-Francorchamps",
+  "circuit de sainte croix b": "Circuit de Sainte-Croix",
+  "colorado springs lake": "Colorado Springs",
+  "daytona road course": "Daytona International Speedway",
+  "deep forest raceway": "Deep Forest Raceway",
+  "dragon trail gardens": "Dragon Trail",
+  "dragon trail seaside": "Dragon Trail",
+  "fishermans ranch": "Fishermans Ranch",
+  "fuji international speedway": "Fuji International Speedway",
+  "grand valley highway 1": "Grand Valley Highway 1",
+  "high speed ring": "High Speed Ring",
+  "lake louise long track": "Lake Louise",
+  "lake louise tri oval": "Lake Louise",
+  "michelin raceway road atlanta": "Michelin Raceway Road Atlanta",
+  "mount panorama": "Mount Panorama",
+  "mount panorama motor racing circuit": "Mount Panorama",
+  "nurburgring nordschleife": "Nurburgring",
+  "red bull ring": "Red Bull Ring",
+  "sardegna windmills": "Sardegna - Windmills",
+  "suzuka circuit": "Suzuka Circuit",
+  "tokyo expressway central clockwise": "Tokyo Expressway",
+  "tokyo expressway east clockwise": "Tokyo Expressway",
+  "tokyo expressway south counterclockwise": "Tokyo Expressway",
+  "trial mountain circuit": "Trial Mountain Circuit",
+  "tsukuba circuit": "Tsukuba Circuit",
+  "weathertech raceway laguna seca": "WeatherTech Raceway Laguna Seca",
+  "watkins glen long course": "Watkins Glen International",
+  "willow springs international raceway big willow": "Willow Springs International Raceway",
+};
+const licenseTargetOverrides = loadLicenseTargetOverrides();
+const licenseScopeOverrides = loadLicenseScopeOverrides();
 const trainingStatuses = {
   "not-started": "未开始",
   active: "练习中",
@@ -862,6 +1023,10 @@ const state = {
   selected: tracks[0].name,
   selectedLayout: "",
   calibratingLayout: "",
+  selectedLicenseLevel: "S",
+  selectedLicenseSeries: "normal",
+  selectedLicenseTestId: "S-10",
+  coachMode: false,
 };
 
 const layoutAccentColors = ["#ef4652", "#42a5ff", "#20d7a3", "#f7c948", "#b56bff", "#ff8b3d"];
@@ -878,7 +1043,13 @@ const telemetryState = {
   lastTick: null,
   lastStatus: null,
   pendingLaps: loadPendingTelemetryLaps(),
+  liveTrace: [],
+  manualAttempt: null,
+  templates: [],
+  dbAvailable: false,
+  dbError: "",
   lastMessageAt: "",
+  lastLiveRenderAt: 0,
   reconnectTimer: 0,
 };
 
@@ -890,6 +1061,8 @@ const trackCountEl = document.querySelector("#trackCount");
 const trainingSummaryEl = document.querySelector("#trainingSummary");
 const trainingUpdatedEl = document.querySelector("#trainingUpdated");
 const telemetryPanelEl = document.querySelector("#telemetryPanel");
+const licenseCoachPanelEl = document.querySelector("#licenseCoachPanel");
+const coachPageEl = document.querySelector("#coachPage");
 const trackByName = new Map(tracks.map((track) => [track.name, track]));
 const trackButtons = new Map();
 let pendingFilterFrame = 0;
@@ -921,6 +1094,18 @@ document.querySelectorAll("[data-training-filter]").forEach((button) => {
   });
 });
 
+function handleTelemetryActionButton(button) {
+  if (!button) return;
+  if (button.dataset.telemetryAction === "connect") connectTelemetryAgent(true);
+  if (button.dataset.telemetryAction === "archive-lap") archiveTelemetryLap(button.dataset.telemetryLapId);
+  if (button.dataset.telemetryAction === "dismiss-lap") dismissTelemetryLap(button.dataset.telemetryLapId);
+  if (button.dataset.telemetryAction === "bind-template") bindTelemetryTemplate(button.dataset.telemetryLapId);
+  if (button.dataset.telemetryAction === "delete-template") deleteTelemetryTemplate(button.dataset.telemetryTemplateId);
+  if (button.dataset.telemetryAction === "start-license-attempt") startManualLicenseAttempt();
+  if (button.dataset.telemetryAction === "finish-license-attempt") finishManualLicenseAttempt();
+  if (button.dataset.telemetryAction === "discard-license-attempt") discardManualLicenseAttempt();
+}
+
 searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim().toLowerCase();
   scheduleFilterRender();
@@ -946,6 +1131,12 @@ detailEl.addEventListener("click", (event) => {
   const cornerActionButton = event.target.closest("[data-corner-action]");
   if (cornerActionButton && detailEl.contains(cornerActionButton)) {
     handleCornerCalibrationAction(cornerActionButton.dataset.cornerAction);
+    return;
+  }
+
+  const guideVehicleButton = event.target.closest("[data-guide-vehicle]");
+  if (guideVehicleButton && detailEl.contains(guideVehicleButton)) {
+    handleGuideVehicleSelect(guideVehicleButton.dataset.guideVehicle);
     return;
   }
 
@@ -999,9 +1190,104 @@ trainingSummaryEl?.addEventListener("click", (event) => {
 telemetryPanelEl?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-telemetry-action]");
   if (!button) return;
-  if (button.dataset.telemetryAction === "connect") connectTelemetryAgent(true);
-  if (button.dataset.telemetryAction === "archive-lap") archiveTelemetryLap(button.dataset.telemetryLapId);
-  if (button.dataset.telemetryAction === "dismiss-lap") dismissTelemetryLap(button.dataset.telemetryLapId);
+  handleTelemetryActionButton(button);
+});
+
+licenseCoachPanelEl?.addEventListener("click", (event) => {
+  const seriesButton = event.target.closest("[data-license-series]");
+  if (seriesButton && licenseCoachPanelEl.contains(seriesButton)) {
+    state.selectedLicenseSeries = seriesButton.dataset.licenseSeries;
+    const nextTest = getLicenseTestsFor(state.selectedLicenseSeries, state.selectedLicenseLevel)[0]
+      ?? LICENSE_TESTS.find((test) => getLicenseSeries(test) === state.selectedLicenseSeries);
+    if (nextTest) {
+      state.selectedLicenseLevel = nextTest.level;
+      state.selectedLicenseTestId = nextTest.id;
+    }
+    renderLicenseCoachPanel();
+    selectTrackForLicenseTest(getActiveLicenseTest(), false);
+    return;
+  }
+  const levelButton = event.target.closest("[data-license-level]");
+  if (levelButton && licenseCoachPanelEl.contains(levelButton)) {
+    state.selectedLicenseLevel = levelButton.dataset.licenseLevel;
+    state.selectedLicenseTestId = getLicenseTestsFor(state.selectedLicenseSeries, state.selectedLicenseLevel)[0]?.id ?? state.selectedLicenseTestId;
+    renderLicenseCoachPanel();
+    return;
+  }
+  const testButton = event.target.closest("[data-license-test]");
+  if (testButton && licenseCoachPanelEl.contains(testButton)) {
+    state.selectedLicenseTestId = testButton.dataset.licenseTest;
+    const selectedTest = LICENSE_TEST_BY_ID.get(state.selectedLicenseTestId);
+    state.selectedLicenseLevel = selectedTest?.level ?? state.selectedLicenseLevel;
+    state.selectedLicenseSeries = getLicenseSeries(selectedTest);
+    renderLicenseCoachPanel();
+    selectTrackForLicenseTest(getActiveLicenseTest(), false);
+    return;
+  }
+  const enterButton = event.target.closest("[data-license-action='enter-coach']");
+  if (enterButton && licenseCoachPanelEl.contains(enterButton)) {
+    enterCoachMode();
+  }
+});
+
+licenseCoachPanelEl?.addEventListener("change", (event) => {
+  const input = event.target.closest("[data-license-target-input]");
+  if (input && licenseCoachPanelEl.contains(input)) {
+    handleLicenseTargetInput(input);
+  }
+});
+
+coachPageEl?.addEventListener("click", (event) => {
+  const telemetryButton = event.target.closest("[data-telemetry-action]");
+  if (telemetryButton && coachPageEl.contains(telemetryButton)) {
+    handleTelemetryActionButton(telemetryButton);
+    return;
+  }
+  const exitButton = event.target.closest("[data-coach-action='exit']");
+  if (exitButton && coachPageEl.contains(exitButton)) {
+    exitCoachMode();
+    return;
+  }
+  const testButton = event.target.closest("[data-coach-license-test]");
+  if (testButton && coachPageEl.contains(testButton)) {
+    state.selectedLicenseTestId = testButton.dataset.coachLicenseTest;
+    const selectedTest = LICENSE_TEST_BY_ID.get(state.selectedLicenseTestId);
+    state.selectedLicenseLevel = selectedTest?.level ?? state.selectedLicenseLevel;
+    state.selectedLicenseSeries = getLicenseSeries(selectedTest);
+    selectTrackForLicenseTest(getActiveLicenseTest(), false);
+    renderCoachMode();
+    return;
+  }
+  const scopeButton = event.target.closest("[data-license-scope]");
+  if (scopeButton && coachPageEl.contains(scopeButton)) {
+    setLicenseScopeOverride(scopeButton.dataset.licenseScopeTest, scopeButton.dataset.licenseScope);
+    renderCoachMode();
+    return;
+  }
+  const resetButton = event.target.closest("[data-license-target-reset]");
+  if (resetButton && coachPageEl.contains(resetButton)) {
+    resetLicenseTargetOverride(resetButton.dataset.licenseTargetReset);
+    renderCoachMode();
+  }
+});
+
+coachPageEl?.addEventListener("input", (event) => {
+  const attemptInput = event.target.closest("[data-license-attempt-time]");
+  if (attemptInput && coachPageEl.contains(attemptInput)) {
+    handleManualAttemptTimeInput(attemptInput);
+  }
+});
+
+coachPageEl?.addEventListener("change", (event) => {
+  const attemptInput = event.target.closest("[data-license-attempt-time]");
+  if (attemptInput && coachPageEl.contains(attemptInput)) {
+    handleManualAttemptTimeInput(attemptInput);
+    return;
+  }
+  const input = event.target.closest("[data-license-target-input]");
+  if (input && coachPageEl.contains(input)) {
+    handleLicenseTargetInput(input);
+  }
 });
 
 window.addEventListener("hashchange", () => {
@@ -1130,6 +1416,40 @@ function renderDetail(track) {
   const layouts = official?.layouts ?? track.layouts;
   const activeLayout = getActiveLayout(official);
   const layoutAccent = activeLayout ? ` style="--layout-accent: ${activeLayout.color};"` : "";
+  const mapPanel = `
+    <figure class="track-visual official-visual">
+      <div class="map-hero"${layoutAccent}>
+        ${renderTrackMap(official, title, activeLayout)}
+        <div class="map-logo-badge">
+          <img src="${officialLogoSrc(official)}" alt="${title} 官方赛道标识" loading="eager" decoding="async" />
+        </div>
+      </div>
+      <figcaption>
+        <strong>${title}</strong>
+        <span>${activeLayout ? `当前强调：${activeLayout.name}` : "赛道布局图为主图，官方标识融入辅助信息"}</span>
+      </figcaption>
+    </figure>
+    ${official ? renderLayoutVerification(activeLayout) : ""}
+  `;
+  const dataPanel = `
+    ${official ? renderOfficialStats(official, activeLayout) : ""}
+    ${official ? renderLayoutComparison(track, official, activeLayout) : ""}
+    ${renderTrackKnowledge(track)}
+    <section class="info-block compact-reference">
+      <h3>标准圈速参考</h3>
+      <table class="pace-table">
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>目标圈速</th>
+            <th>车辆选择</th>
+            <th>通过标准</th>
+          </tr>
+        </thead>
+        <tbody>${renderPaceRows(track, official, activeLayout)}</tbody>
+      </table>
+    </section>
+  `;
   return `
     <article>
       <header class="detail-head">
@@ -1149,54 +1469,299 @@ function renderDetail(track) {
         </div>
       </header>
 
-      <figure class="track-visual official-visual">
-        <div class="map-hero"${layoutAccent}>
-          ${renderTrackMap(official, title, activeLayout)}
-          <div class="map-logo-badge">
-            <img src="${officialLogoSrc(official)}" alt="${title} 官方赛道标识" loading="eager" decoding="async" />
-          </div>
-        </div>
-        <figcaption>
-          <strong>${title}</strong>
-          <span>${activeLayout ? `当前强调：${activeLayout.name}` : "赛道布局图为主图，官方标识融入辅助信息"}</span>
-        </figcaption>
-      </figure>
-
-      ${official ? renderLayoutVerification(activeLayout) : ""}
-      ${official && activeLayout ? renderTrainingCard(track, official, activeLayout) : ""}
-      ${official ? renderOfficialStats(official, activeLayout) : ""}
-      ${official ? renderLayoutComparison(track, official, activeLayout) : ""}
-
-      <div class="detail-grid">
-        <section class="info-block">
-          <h3>赛道性格</h3>
-          <p>${track.profile}</p>
-        </section>
-        <section class="info-block">
-          <h3>练习重点</h3>
-          <ul>${track.focus.map((item) => `<li>${item}</li>`).join("")}</ul>
-        </section>
-        <section class="info-block">
-          <h3>车辆与调校方向</h3>
-          <p>${track.tune}</p>
-        </section>
+      ${official && activeLayout ? renderPracticeGuide(track, official, activeLayout) : ""}
+      <div class="standby-stack" aria-label="后台资料">
+        ${renderProgressiveSection("Standby · 赛道布局图", "需要看弯道和路线时展开", mapPanel, false)}
+        ${official && activeLayout ? renderProgressiveSection("Standby · 记录与复盘", "最近练习、遥测摘要和历史表现", renderTrainingStandby(track, official, activeLayout), false) : ""}
+        ${renderProgressiveSection("Standby · 数据库", "官方数据、布局对比、赛道知识和标准圈速", dataPanel, false)}
       </div>
-
-      <section class="info-block" style="margin-top: 14px;">
-        <h3>难度圈速指南</h3>
-        <table class="pace-table">
-          <thead>
-            <tr>
-              <th>阶段</th>
-              <th>目标圈速</th>
-              <th>车辆选择</th>
-              <th>通过标准</th>
-            </tr>
-          </thead>
-          <tbody>${renderPaceRows(track, official, activeLayout)}</tbody>
-        </table>
-      </section>
     </article>
+  `;
+}
+
+function renderPracticeGuide(track, official, activeLayout) {
+  const record = getTrainingRecord(activeLayout.id);
+  const difficulty = getTargetDifficulty(record);
+  const range = getTargetRange(track, official, activeLayout, difficulty);
+  const cars = getCarsForDifficulty(track, difficulty);
+  const selectedVehicle = record.currentVehicle || cars[0] || "";
+  const best = getBestLapSeconds(record);
+  const gap = best ? best - range.target : null;
+  const diagnosis = buildGuidedDiagnosis(gap, record);
+  const progress = best ? (gap <= 0 ? 100 : Math.max(12, Math.min(92, 100 - (gap / Math.max(6, range.target * 0.08)) * 100))) : 18;
+  const stage = getPracticeStage(record, best);
+  const lapParts = splitLapTime(null);
+  return `
+    <section class="practice-focus" aria-label="当前训练步骤">
+      <div class="focus-kicker">
+        <span>Guided Practice</span>
+        <b>${escapeHtml(activeLayout.name)}</b>
+      </div>
+      <div class="focus-hero">
+        <div>
+          <small>${escapeHtml(stage.eyebrow)}</small>
+          <h3>${escapeHtml(stage.title)}</h3>
+          <p>${escapeHtml(stage.copy)}</p>
+        </div>
+        <div class="practice-progress minimal" style="--practice-progress: ${progress.toFixed(0)}%;">
+          <span></span>
+          <strong>${best ? formatGap(gap) : "待记录"}</strong>
+          <small>${best ? "相对目标中位" : "先完成第一圈"}</small>
+        </div>
+      </div>
+      <div class="focus-stage-bar" aria-label="训练步骤">
+        ${renderFocusStage("layout", "赛道", stage.key)}
+        ${renderFocusStage("vehicle", "车辆", stage.key)}
+        ${renderFocusStage("lap", "圈速", stage.key)}
+        ${renderFocusStage("review", "复盘", stage.key)}
+      </div>
+      ${renderFocusAction({
+        stage,
+        track,
+        activeLayout,
+        difficulty,
+        range,
+        cars,
+        selectedVehicle,
+        best,
+        gap,
+        diagnosis,
+        lapParts,
+      })}
+    </section>
+  `;
+}
+
+function getPracticeStage(record, best) {
+  if (!record.currentVehicle) {
+    return {
+      key: "vehicle",
+      eyebrow: "Step 1",
+      title: "先选一台今天要练的车。",
+      copy: "不要同时比较太多变量。先固定车辆，再开始记录圈速。",
+    };
+  }
+  if (!best) {
+    return {
+      key: "lap",
+      eyebrow: "Step 2",
+      title: "跑一圈，把第一个基准圈留下。",
+      copy: "不用追极限。第一圈只负责建立基准，之后才谈差距和改进。",
+    };
+  }
+  return {
+    key: "review",
+    eyebrow: "Step 3",
+    title: "看差距，只改一个问题。",
+    copy: "把注意力放在最影响圈速的一件事上，下一圈只验证这一处。",
+  };
+}
+
+function renderFocusStage(key, label, activeKey) {
+  const order = ["layout", "vehicle", "lap", "review"];
+  const activeIndex = order.indexOf(activeKey);
+  const index = order.indexOf(key);
+  const className = index < activeIndex ? " is-done" : key === activeKey ? " is-current" : "";
+  return `<span class="focus-stage${className}">${escapeHtml(label)}</span>`;
+}
+
+function renderFocusAction(context) {
+  if (context.stage.key === "vehicle") return renderVehicleFocusAction(context);
+  if (context.stage.key === "lap") return renderLapFocusAction(context);
+  return renderReviewFocusAction(context);
+}
+
+function renderVehicleFocusAction({ cars, selectedVehicle, difficulty, range }) {
+  return `
+    <div class="focus-action focus-vehicle">
+      <div class="focus-action-copy">
+        <small>目标区间</small>
+        <strong>${formatTime(range.lower)} - ${formatTime(range.upper)}</strong>
+        <span>当前难度：${escapeHtml(difficulty)}。先从推荐车开始，避免一上来陷入调校和车辆差异。</span>
+      </div>
+      ${renderVehiclePicker(cars, selectedVehicle, difficulty)}
+    </div>
+  `;
+}
+
+function renderVehiclePicker(cars, selectedVehicle, difficulty, compact = false) {
+  const currentTrack = trackByName.get(state.selected);
+  const className = compact ? "focus-choice-grid is-compact" : "focus-choice-grid";
+  return `
+    <div class="${className}">
+      ${cars
+        .slice(0, 3)
+        .map((car) => {
+          const active = normalizeVehicleName(selectedVehicle) === normalizeVehicleName(car) ? " is-selected" : "";
+          const reason = getVehicleReason(car, currentTrack, difficulty);
+          return `
+            <button type="button" class="focus-choice${active}" data-guide-vehicle="${escapeHtml(car)}">
+              <strong>${escapeHtml(car)}</strong>
+              <span>${escapeHtml(reason)}</span>
+            </button>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderLapFocusAction({ cars, selectedVehicle, difficulty, range, lapParts }) {
+  return `
+    <div class="focus-action focus-lap">
+      <div class="focus-action-copy">
+        <small>当前任务</small>
+        <strong>跑进 ${formatTime(range.lower)} - ${formatTime(range.upper)}</strong>
+        <span>${escapeHtml(selectedVehicle || "已选车辆")} · ${escapeHtml(difficulty)}。手动输入圈速，或等遥测圈进入待归档。</span>
+      </div>
+      <div class="focus-vehicle-switcher">
+        <div>
+          <small>当前车辆</small>
+          <strong>${escapeHtml(selectedVehicle || "未选择")}</strong>
+          <span>需要换车时直接点下面的推荐项，不用重置训练流程。</span>
+        </div>
+        ${renderVehiclePicker(cars, selectedVehicle, difficulty, true)}
+      </div>
+      <div class="focus-lap-form">
+        <label>
+          <span>目标难度</span>
+          <select id="targetDifficultySelect">
+            ${Object.keys(difficultyMultipliers)
+              .map((item) => `<option value="${item}"${item === difficulty ? " selected" : ""}>${item}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label class="lap-time-field">
+          <span>本次圈速</span>
+          <div class="lap-time-input">
+            <input id="bestLapMinutes" data-lap-part="minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.minutes}" placeholder="00" aria-label="分钟" />
+            <b>:</b>
+            <input id="bestLapSeconds" data-lap-part="seconds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${lapParts.seconds}" placeholder="00" aria-label="秒" />
+            <b>:</b>
+            <input id="bestLapMillis" data-lap-part="millis" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${lapParts.millis}" placeholder="000" aria-label="毫秒" />
+          </div>
+        </label>
+        <label>
+          <span>车辆</span>
+          <input id="sessionVehicle" type="text" value="${escapeHtml(selectedVehicle)}" placeholder="例如 Porsche 911 GT3 RS" />
+        </label>
+        <label>
+          <span>设置</span>
+          <input id="sessionSetup" type="text" placeholder="RH / TC 1 / ABS Default" />
+        </label>
+        <label class="focus-wide">
+          <span>失误点</span>
+          <input id="sessionMistakes" type="text" placeholder="只写最明显的一处，例如 T1 刹晚或出弯推头" />
+        </label>
+        <label class="focus-wide">
+          <span>练习感受</span>
+          <textarea id="sessionFeeling" rows="2" placeholder="下一圈只验证一个改进点"></textarea>
+        </label>
+        <textarea id="trainingNotes" class="visually-hidden" aria-hidden="true"></textarea>
+        <div class="focus-actions">
+          <button type="button" data-training-action="save-training">保存本圈</button>
+          <button type="button" data-training-action="set-current">设为当前训练</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderReviewFocusAction({ cars, best, gap, diagnosis, difficulty, range, selectedVehicle }) {
+  return `
+    <div class="focus-action focus-review">
+      <div class="focus-result">
+        <small>个人最佳</small>
+        <strong>${best ? formatLapTime(best) : "未记录"}</strong>
+        <span>目标中位：${formatTime(range.target)} · ${escapeHtml(selectedVehicle || "未记录车辆")}</span>
+      </div>
+      <div class="focus-result ${gap <= 0 ? "is-good" : "is-warning"}">
+        <small>目标差距</small>
+        <strong>${formatGap(gap)}</strong>
+        <span>${escapeHtml(diagnosis.copy)}</span>
+      </div>
+      <div class="focus-actions">
+        <button type="button" data-training-action="complete">标记已达标</button>
+        <button type="button" data-training-action="set-current">继续练这一条</button>
+      </div>
+      <div class="focus-vehicle-switcher is-review">
+        <div>
+          <small>换车再试</small>
+          <strong>${escapeHtml(selectedVehicle || "未选择")}</strong>
+          <span>复盘后如果要换稳定车或冲刺车，可以直接切换并继续记录下一圈。</span>
+        </div>
+        ${renderVehiclePicker(cars, selectedVehicle, difficulty, true)}
+      </div>
+    </div>
+  `;
+}
+
+function buildGuidedDiagnosis(gap, record) {
+  if (!getBestLapSeconds(record)) {
+    return {
+      className: "",
+      title: "还没有基准圈",
+      copy: "先用推荐车辆跑一圈，把圈速保存下来，页面会自动给出目标差距。",
+    };
+  }
+  if (gap <= 0) {
+    return {
+      className: "is-ready",
+      title: "已达到当前目标",
+      copy: "可以切到更高难度，或换一台上限更高的车继续压分段。",
+    };
+  }
+  if (gap > 8) {
+    return {
+      className: "is-warning",
+      title: `落后 ${gap.toFixed(1)} 秒`,
+      copy: "先别追极限，优先固定刹车点和出弯油门，目标是连续 3 圈无大失误。",
+    };
+  }
+  if (gap > 2) {
+    return {
+      className: "is-warning",
+      title: `落后 ${gap.toFixed(1)} 秒`,
+      copy: "重点检查慢弯出弯和高速弯入弯速度，单圈误差先压进 2 秒内。",
+    };
+  }
+  return {
+    className: "is-ready",
+    title: `只差 ${gap.toFixed(1)} 秒`,
+    copy: "已经进入细节区间，复盘刹车释放点、路肩使用和最后一段出弯速度。",
+  };
+}
+
+function renderTrackKnowledge(track) {
+  return `
+    <div class="detail-grid">
+      <section class="info-block">
+        <h3>赛道性格</h3>
+        <p>${track.profile}</p>
+      </section>
+      <section class="info-block">
+        <h3>练习重点</h3>
+        <ul>${track.focus.map((item) => `<li>${item}</li>`).join("")}</ul>
+      </section>
+      <section class="info-block">
+        <h3>车辆与调校方向</h3>
+        <p>${track.tune}</p>
+      </section>
+    </div>
+  `;
+}
+
+function renderProgressiveSection(title, subtitle, content, open = false) {
+  return `
+    <details class="progressive-section"${open ? " open" : ""}>
+      <summary>
+        <span>
+          <strong>${escapeHtml(title)}</strong>
+          <small>${escapeHtml(subtitle)}</small>
+        </span>
+      </summary>
+      <div class="progressive-section-body">${content}</div>
+    </details>
   `;
 }
 
@@ -1324,6 +1889,7 @@ function renderSessionRows(sessions, range) {
         .map((session) => {
           const gap = session.lapSeconds - range.target;
           const bestClass = bestById.get(session.id) ? " is-best" : "";
+          const telemetrySummary = renderTelemetrySessionSummary(session);
           return `
             <article class="session-row${bestClass}">
               <div>
@@ -1336,16 +1902,37 @@ function renderSessionRows(sessions, range) {
               </div>
               <div>
                 <small>车辆 / 设置</small>
-                <span>${escapeHtml([session.vehicle, session.setup].filter(Boolean).join(" · ") || "未填写")}</span>
+                <span>${session.traceId ? `<b class="telemetry-badge">Telemetry Auto</b>` : ""}${escapeHtml([session.vehicle, session.setup].filter(Boolean).join(" · ") || "未填写")}</span>
               </div>
               <div>
                 <small>复盘</small>
                 <span>${escapeHtml([session.mistakes, session.feeling].filter(Boolean).join("；") || "暂无备注")}</span>
               </div>
+              ${telemetrySummary}
             </article>
           `;
         })
         .join("")}
+    </div>
+  `;
+}
+
+function renderTelemetrySessionSummary(session) {
+  if (!session.traceId && !session.telemetrySummary) return "";
+  const summary = session.telemetrySummary ?? {};
+  const coach = sanitizeTelemetryCoachAnalysis(session.telemetryCoach);
+  const parts = [
+    session.traceId ? `trace ${session.traceId}` : "",
+    summary.maxSpeedKmh ? `极速 ${summary.maxSpeedKmh} km/h` : "",
+    summary.avgSpeedKmh ? `均速 ${summary.avgSpeedKmh} km/h` : "",
+    summary.brakeEvents ? `刹车 ${summary.brakeEvents} 次` : "",
+    summary.fullThrottlePct ? `全油 ${summary.fullThrottlePct}%` : "",
+  ].filter(Boolean);
+  return `
+    <div class="telemetry-session-summary">
+      <small>遥测摘要</small>
+      <span>${escapeHtml(parts.join(" · ") || "Telemetry Auto")}</span>
+      ${coach ? renderTelemetryCoachAnalysis(coach, "compact") : ""}
     </div>
   `;
 }
@@ -1362,6 +1949,7 @@ function renderTrainingCard(track, official, activeLayout) {
   const recentSessions = getRecentSessions(record, 5);
   const latestSession = getLatestSession(record);
   const sessionRows = renderSessionRows(recentSessions, range);
+  const telemetryReview = renderTelemetryRecordSummary(recentSessions);
   const tasks = renderTrainingTasks(targetDifficulty);
   const currentVehicle = record.currentVehicle || latestSession?.vehicle || "";
   const currentSetup = record.currentSetup || latestSession?.setup || "";
@@ -1449,7 +2037,69 @@ function renderTrainingCard(track, official, activeLayout) {
           <h3>最近 5 次复盘</h3>
           <span>${latestSession ? `最近 ${formatRelativeDate(latestSession.createdAt)}` : "还没有练习记录"}</span>
         </div>
+        ${telemetryReview}
         ${sessionRows}
+      </div>
+    </section>
+  `;
+}
+
+function renderTelemetryRecordSummary(sessions) {
+  const telemetrySessions = sessions.filter((session) => session.traceId || session.telemetrySummary);
+  if (!telemetrySessions.length) return "";
+  return `
+    <details class="telemetry-review">
+      <summary>查看遥测摘要</summary>
+      <div class="telemetry-review-grid">
+        ${telemetrySessions
+          .map((session) => {
+            const summary = session.telemetrySummary ?? {};
+            return `
+              <article>
+                <strong>${formatLapTime(session.lapSeconds)}</strong>
+                <span>${escapeHtml(session.traceId || "Telemetry Auto")}</span>
+                <small>极速 ${summary.maxSpeedKmh ?? "--"} km/h · 均速 ${summary.avgSpeedKmh ?? "--"} km/h · 刹车 ${summary.brakeEvents ?? 0} 次 · 全油 ${summary.fullThrottlePct ?? "--"}%</small>
+              </article>
+            `;
+          })
+          .join("")}
+      </div>
+    </details>
+  `;
+}
+
+function renderTrainingStandby(track, official, activeLayout) {
+  const record = getTrainingRecord(activeLayout.id);
+  const targetDifficulty = getTargetDifficulty(record);
+  const range = getTargetRange(track, official, activeLayout, targetDifficulty);
+  const best = getBestLapSeconds(record);
+  const gap = best ? best - range.target : null;
+  const status = getTrainingStatusMeta(record);
+  const recentSessions = getRecentSessions(record, 5);
+  const latestSession = getLatestSession(record);
+  return `
+    <section class="training-standby">
+      <div class="training-card-head">
+        <div>
+          <small>当前训练布局</small>
+          <h3>${escapeHtml(activeLayout.name)}</h3>
+          <p>目标难度：${escapeHtml(targetDifficulty)} · 目标圈速 ${formatTime(range.lower)} - ${formatTime(range.upper)}</p>
+        </div>
+        <span class="training-status-badge ${status.className}">${status.label}</span>
+      </div>
+      <div class="training-metrics">
+        <div><small>目标中位</small><strong>${formatTime(range.target)}</strong></div>
+        <div><small>个人最佳</small><strong>${best ? formatLapTime(best) : "未记录"}</strong></div>
+        <div><small>目标差距</small><strong class="${gap !== null && gap <= 0 ? "is-ahead" : ""}">${formatGap(gap)}</strong></div>
+        <div><small>练习次数</small><strong>${record.sessions.length}</strong></div>
+      </div>
+      <div class="session-review standby-review">
+        <div class="section-title inline-title">
+          <h3>最近 5 次复盘</h3>
+          <span>${latestSession ? `最近 ${formatRelativeDate(latestSession.createdAt)}` : "还没有练习记录"}</span>
+        </div>
+        ${renderTelemetryRecordSummary(recentSessions)}
+        ${renderSessionRows(recentSessions, range)}
       </div>
     </section>
   `;
@@ -1661,6 +2311,8 @@ function sanitizeTrainingSessions(sessions) {
         mistakes: typeof session.mistakes === "string" ? session.mistakes.slice(0, 220) : "",
         feeling: typeof session.feeling === "string" ? session.feeling.slice(0, 360) : "",
         traceId: typeof session.traceId === "string" ? session.traceId.slice(0, 80) : "",
+        telemetrySummary: sanitizeTelemetrySessionSummary(session.telemetrySummary),
+        telemetryCoach: sanitizeTelemetryCoachAnalysis(session.telemetryCoach),
         createdAt,
       });
       return memo;
@@ -1669,8 +2321,45 @@ function sanitizeTrainingSessions(sessions) {
     .slice(0, 30);
 }
 
+function sanitizeTelemetrySessionSummary(summary) {
+  if (!summary || typeof summary !== "object") return null;
+  return {
+    samples: toFiniteNumber(summary.samples, 0),
+    maxSpeedKmh: toFiniteNumber(summary.maxSpeedKmh, 0),
+    avgSpeedKmh: toFiniteNumber(summary.avgSpeedKmh, 0),
+    brakeEvents: toFiniteNumber(summary.brakeEvents, 0),
+    fullThrottlePct: toFiniteNumber(summary.fullThrottlePct, 0),
+  };
+}
+
+function sanitizeTelemetryCoachAnalysis(coach) {
+  if (!coach || typeof coach !== "object") return null;
+  const priorities = Array.isArray(coach.priorities)
+    ? coach.priorities
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          return {
+            title: typeof item.title === "string" ? item.title.slice(0, 80) : "",
+            body: typeof item.body === "string" ? item.body.slice(0, 220) : "",
+            metric: typeof item.metric === "string" ? item.metric.slice(0, 80) : "",
+            segmentLabel: typeof item.segmentLabel === "string" ? item.segmentLabel.slice(0, 100) : "",
+            severity: ["high", "medium", "low"].includes(item.severity) ? item.severity : "medium",
+          };
+        })
+        .filter((item) => item?.title && item.body)
+        .slice(0, 4)
+    : [];
+  if (!priorities.length) return null;
+  return {
+    score: Math.round(Math.min(100, Math.max(0, toFiniteNumber(coach.score, 60)))),
+    summary: typeof coach.summary === "string" ? coach.summary.slice(0, 180) : "",
+    segmentCount: toFiniteNumber(coach.segmentCount, 0),
+    priorities,
+  };
+}
+
 function persistTrainingData() {
-  localStorage.setItem(TRAINING_STORAGE_KEY_V12, JSON.stringify({ version: "1.2", layouts: trainingData }));
+  localStorage.setItem(TRAINING_STORAGE_KEY_V12, JSON.stringify({ version: "1.4", layouts: trainingData }));
 }
 
 function getTrainingRecord(layoutId) {
@@ -1765,6 +2454,18 @@ function handleTrainingAction(action) {
       saveTrainingRecord(activeLayout.id, patch);
     }
   }
+}
+
+function handleGuideVehicleSelect(vehicle) {
+  const activeLayout = getCurrentActiveLayout();
+  if (!activeLayout || !vehicle) return;
+  const record = getTrainingRecord(activeLayout.id);
+  saveTrainingRecord(activeLayout.id, {
+    status: record.status === "complete" ? "complete" : "active",
+    currentVehicle: vehicle,
+  });
+  const vehicleInput = detailEl.querySelector("#sessionVehicle");
+  if (vehicleInput) vehicleInput.value = vehicle;
 }
 
 function handleCornerCalibrationAction(action) {
@@ -2170,6 +2871,16 @@ function buildAllLayoutEntries() {
   });
 }
 
+function getLayoutEntryById(layoutId) {
+  return allLayoutEntries.find((entry) => entry.layout.id === layoutId) ?? null;
+}
+
+function getLayoutLabelById(layoutId) {
+  const entry = getLayoutEntryById(layoutId);
+  if (!entry) return layoutId || "未知布局";
+  return `${getTrackZhName(entry.track.name)} · ${entry.layout.name}`;
+}
+
 function formatRelativeDate(value) {
   const time = Date.parse(value);
   if (!Number.isFinite(time)) return "刚刚";
@@ -2195,10 +2906,24 @@ function applyHashRoute() {
   const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const trackName = params.get("track");
   const layoutId = params.get("layout");
-  if (!trackName || !trackByName.has(trackName)) return;
-  state.selected = trackName;
-  const official = getOfficialTrack(trackByName.get(trackName));
-  state.selectedLayout = official?.layoutDetails.some((layout) => layout.id === layoutId) ? layoutId : "";
+  const licenseId = params.get("license");
+  const seriesId = params.get("series");
+  state.coachMode = params.get("mode") === "coach";
+  if (LICENSE_SERIES.some((series) => series.id === seriesId)) {
+    state.selectedLicenseSeries = seriesId;
+  }
+  if (licenseId && LICENSE_TEST_BY_ID.has(licenseId)) {
+    const licenseTest = LICENSE_TEST_BY_ID.get(licenseId);
+    state.selectedLicenseTestId = licenseId;
+    state.selectedLicenseLevel = licenseTest.level;
+    state.selectedLicenseSeries = getLicenseSeries(licenseTest);
+  }
+  if (trackName && trackByName.has(trackName)) {
+    state.selected = trackName;
+    const official = getOfficialTrack(trackByName.get(trackName));
+    state.selectedLayout = official?.layoutDetails.some((layout) => layout.id === layoutId) ? layoutId : "";
+  }
+  document.body.classList.toggle("is-coach-mode", state.coachMode);
 }
 
 function updateUrlHash() {
@@ -2209,6 +2934,9 @@ function updateUrlHash() {
   const params = new URLSearchParams();
   params.set("track", state.selected);
   if (layoutId) params.set("layout", layoutId);
+  if (state.selectedLicenseSeries) params.set("series", state.selectedLicenseSeries);
+  if (state.selectedLicenseTestId) params.set("license", state.selectedLicenseTestId);
+  if (state.coachMode) params.set("mode", "coach");
   history.replaceState(null, "", `#${params.toString()}`);
 }
 
@@ -2292,6 +3020,40 @@ function renderTrackMap(official, title, activeLayout) {
         <small>MAP SOURCE</small>
         <strong>${escapeHtml(sourceLabel)}</strong>
         <span>${layoutAsset ? "按布局 ID 离线缓存" : "未找到 layout 级图片时使用"}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderCoachTrackMap(official, title, activeLayout) {
+  const layoutName = activeLayout ? escapeHtml(activeLayout.name) : escapeHtml(title);
+  const layoutMeta = activeLayout ? `${activeLayout.length} · ${activeLayout.corners} 弯` : "等待布局数据";
+  const layoutAsset = activeLayout ? layoutAssets[activeLayout.id] : null;
+  const fallbackSrc = official && officialMapIds.has(official.baseId) ? `./assets/track-maps/${official.baseId}.png` : "";
+  const mapSrc = layoutAsset?.mapSrc ?? fallbackSrc;
+  const sourceLabel = layoutAsset ? `${layoutAsset.sourceName} · ${layoutAsset.sourceType}` : "地点级备用图";
+  if (!mapSrc) {
+    return `
+      <div class="track-map-frame is-missing is-coach-map-light">
+        <strong>布局图待补</strong>
+        <span>此布局暂未匹配到可离线显示的真实布局图</span>
+      </div>
+    `;
+  }
+  return `
+    <div class="track-map-frame is-layout-map is-coach-map-light">
+      <div class="layout-map-surface">
+        <img class="layout-map-image" src="${mapSrc}" alt="${title} ${layoutName} 布局图" loading="eager" decoding="async" />
+      </div>
+      <div class="layout-accent-card">
+        <small>ACTIVE LAYOUT</small>
+        <strong>${layoutName}</strong>
+        <span>${layoutMeta}</span>
+      </div>
+      <div class="map-source-card">
+        <small>MAP SOURCE</small>
+        <strong>${escapeHtml(sourceLabel)}</strong>
+        <span>教练页轻量只读图</span>
       </div>
     </div>
   `;
@@ -2603,10 +3365,689 @@ function normalizeName(value) {
     .toLowerCase();
 }
 
+function getLicenseSeries(test) {
+  return test?.series === "master" ? "master" : "normal";
+}
+
+function getLicenseSeriesMeta(seriesId) {
+  return LICENSE_SERIES.find((series) => series.id === seriesId) ?? LICENSE_SERIES[0];
+}
+
+function getLicenseDisplayId(test) {
+  return test?.displayId ?? test?.id ?? "";
+}
+
+function getLicenseTestsFor(seriesId = state.selectedLicenseSeries, level = state.selectedLicenseLevel) {
+  return LICENSE_TESTS.filter((test) => getLicenseSeries(test) === seriesId && test.level === level);
+}
+
+function renderLicenseCoachPanel() {
+  if (!licenseCoachPanelEl) return;
+  const activeTest = getActiveLicenseTest();
+  const currentSeries = getLicenseSeriesMeta(state.selectedLicenseSeries);
+  const seriesTests = LICENSE_TESTS.filter((test) => getLicenseSeries(test) === currentSeries.id);
+  const levelTests = getLicenseTestsFor(currentSeries.id, state.selectedLicenseLevel);
+  const typeBuckets = [...new Set(seriesTests.map((test) => getLicenseTypeMeta(test).label))];
+  const seriesButtons = LICENSE_SERIES
+    .map((series) => {
+      const active = currentSeries.id === series.id ? " active" : "";
+      return `<button type="button" class="chip${active}" data-license-series="${series.id}">${escapeHtml(series.label)}</button>`;
+    })
+    .join("");
+  const levelButtons = LICENSE_LEVELS
+    .map((level) => {
+      const active = state.selectedLicenseLevel === level ? " active" : "";
+      return `<button type="button" class="chip${active}" data-license-level="${level}">${level}</button>`;
+    })
+    .join("");
+  const testCards = levelTests
+    .map((test) => {
+      const active = activeTest?.id === test.id ? " active" : "";
+      const type = getLicenseTypeMeta(test);
+      const scope = getLicenseScopeMeta(test);
+      const targets = getLicenseTargets(test);
+      return `
+        <button type="button" class="license-test-card${active}" data-license-test="${escapeHtml(test.id)}">
+          <span>
+            <strong>${escapeHtml(getLicenseDisplayId(test))}</strong>
+            <small>${escapeHtml(type.label)} · ${escapeHtml(scope.label)}</small>
+          </span>
+          <b>${Number.isFinite(targets.gold) ? formatLapTime(targets.gold) : "按游戏填写"}</b>
+          <em>${escapeHtml(test.track)}</em>
+        </button>
+      `;
+    })
+    .join("");
+
+  licenseCoachPanelEl.innerHTML = `
+    <div class="section-title license-title">
+      <div>
+        <h2>驾照考试 AI 教练</h2>
+        <span>${seriesTests.length} 个${escapeHtml(currentSeries.label)}测试 · ${typeBuckets.length} 类训练</span>
+      </div>
+      <div class="license-toolbar">
+        <div class="filter-group license-series" aria-label="驾照考试集">${seriesButtons}</div>
+        <div class="filter-group license-levels" aria-label="驾照等级">${levelButtons}</div>
+      </div>
+    </div>
+    <div class="license-coach-grid">
+      <div class="license-test-list">${testCards}</div>
+      ${renderActiveLicenseTest(activeTest)}
+    </div>
+  `;
+}
+
+function renderActiveLicenseTest(test) {
+  if (!test) return `<div class="license-test-detail empty-state">请选择一个驾照测试。</div>`;
+  const type = getLicenseTypeMeta(test);
+  const scope = getLicenseScopeMeta(test);
+  const targets = getLicenseTargets(test);
+  return `
+    <article class="license-test-detail">
+      <div class="license-detail-head">
+        <span>${escapeHtml(getLicenseDisplayId(test))} · ${escapeHtml(getLicenseSeriesMeta(getLicenseSeries(test)).label)} · ${escapeHtml(type.label)} · ${escapeHtml(scope.label)}</span>
+        <strong>${escapeHtml(test.title)}</strong>
+        <small>${escapeHtml(test.car)}</small>
+      </div>
+      ${renderLicenseTargets(test, targets)}
+      <p>${escapeHtml(type.coach)}</p>
+      <div class="license-telemetry-bridge">
+        <span>${escapeHtml(scope.label)}归因</span>
+        <strong>${escapeHtml(scope.mapCopy)}</strong>
+        <small>${escapeHtml(scope.copy)}</small>
+      </div>
+      <button type="button" class="license-enter-coach" data-license-action="enter-coach">进入教练模式</button>
+    </article>
+  `;
+}
+
+function renderLicenseTargets(test, targets, options = {}) {
+  const editable = options.editable ?? false;
+  const medalLabels = [
+    ["gold", "金"],
+    ["silver", "银"],
+    ["bronze", "铜"],
+  ];
+  const cells = medalLabels
+    .map(([medal, label]) => {
+      if (!editable) {
+        return `<span><b>${Number.isFinite(targets[medal]) ? formatLapTime(targets[medal]) : "按游戏填写"}</b><small>${label}</small></span>`;
+      }
+      const value = Number.isFinite(targets[medal]) ? formatLapTime(targets[medal]) : "";
+      return `
+        <label>
+          <small>${label}</small>
+          <input
+            type="text"
+            value="${escapeHtml(value)}"
+            placeholder="按游戏填写"
+            inputmode="decimal"
+            data-license-target-input="${escapeHtml(test.id)}"
+            data-license-target-medal="${medal}"
+            aria-label="${escapeHtml(`${test.id} ${label}牌目标`)}"
+          />
+        </label>
+      `;
+    })
+    .join("");
+  const resetButton = editable
+    ? `<button type="button" class="license-target-reset" data-license-target-reset="${escapeHtml(test.id)}">恢复资料目标</button>`
+    : "";
+  return `<div class="license-targets${editable ? " is-editable" : ""}">${cells}${resetButton}</div>`;
+}
+
+function getActiveLicenseTest() {
+  return LICENSE_TEST_BY_ID.get(state.selectedLicenseTestId) ?? LICENSE_TESTS[0] ?? null;
+}
+
+function enterCoachMode() {
+  state.coachMode = true;
+  selectTrackForLicenseTest(getActiveLicenseTest(), false);
+  document.body.classList.add("is-coach-mode");
+  renderCoachMode();
+  updateUrlHash();
+  coachPageEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function exitCoachMode() {
+  state.coachMode = false;
+  document.body.classList.remove("is-coach-mode");
+  if (coachPageEl) {
+    coachPageEl.hidden = true;
+    coachPageEl.innerHTML = "";
+  }
+  updateUrlHash();
+}
+
+function renderCoachMode() {
+  if (!coachPageEl || !state.coachMode) return;
+  const test = getActiveLicenseTest();
+  const track = getTrackForLicenseTest(test);
+  if (track) {
+    state.selected = track.name;
+    const official = getOfficialTrack(track);
+    const activeLayout = official ? getActiveLayout(official) : null;
+    coachPageEl.hidden = false;
+    coachPageEl.innerHTML = renderCoachPage(test, track, official, activeLayout);
+  } else {
+    coachPageEl.hidden = false;
+    coachPageEl.innerHTML = renderCoachPage(test, null, null, null);
+  }
+  renderLicenseCoachPanel();
+  updateActiveTrackButton();
+  updateUrlHash();
+}
+
+function renderCoachPage(test, track, official, activeLayout) {
+  const type = getLicenseTypeMeta(test);
+  const scope = getLicenseScopeMeta(test);
+  const targets = getLicenseTargets(test);
+  const series = getLicenseSeriesMeta(getLicenseSeries(test));
+  const selectedLap = telemetryState.pendingLaps.find((lap) => lap.licenseTestId === test?.id) ?? null;
+  const goldGap = selectedLap && Number.isFinite(targets.gold) ? selectedLap.lapSeconds - targets.gold : null;
+  const statusInfo = getTelemetryStatusInfo();
+  const sameLevelTests = getLicenseTestsFor(series.id, test.level);
+  const levelSwitcher = sameLevelTests
+    .map((item) => {
+      const active = item.id === test.id ? " active" : "";
+      return `<button type="button" class="coach-test-pill${active}" data-coach-license-test="${escapeHtml(item.id)}">${escapeHtml(getLicenseDisplayId(item))}</button>`;
+    })
+    .join("");
+  return `
+    <article class="coach-shell">
+      <header class="coach-header">
+        <button type="button" class="coach-back" data-coach-action="exit">返回总览</button>
+        <div>
+          <small>${escapeHtml(getLicenseDisplayId(test))} · ${escapeHtml(series.label)} · ${escapeHtml(type.label)} · ${escapeHtml(scope.label)}</small>
+          <h2>${escapeHtml(test.title)}</h2>
+          <p>${escapeHtml(test.track)} · ${escapeHtml(test.car)}</p>
+        </div>
+        <div class="coach-medal-target">
+          <span>${escapeHtml(scope.medalLabel)}</span>
+          <strong>${Number.isFinite(targets.gold) ? formatLapTime(targets.gold) : "按游戏填写"}</strong>
+          <small>${selectedLap ? formatGap(goldGap) : "等待本次尝试"}</small>
+        </div>
+      </header>
+      <div class="coach-test-switcher">${levelSwitcher}</div>
+      <section class="coach-main-grid">
+        <div class="coach-map-card">
+          <div class="coach-card-title">
+            <span>${escapeHtml(scope.mapLabel)}</span>
+            <strong>${escapeHtml(activeLayout?.name ?? track?.name ?? test.track)}</strong>
+          </div>
+          <div class="license-scope-note">
+            <strong>${escapeHtml(scope.mapCopy)}</strong>
+            <span>${escapeHtml(scope.copy)}</span>
+          </div>
+          ${
+            official
+              ? `<div class="coach-map-frame">${renderCoachTrackMap(official, official.officialName ?? track.name, activeLayout)}</div>`
+              : `<div class="coach-map-missing"><strong>${escapeHtml(test.track)}</strong><span>当前赛道库没有完全匹配的布局图，遥测仍可按测试类型分析。</span></div>`
+          }
+        </div>
+        <aside class="coach-target-card">
+          ${renderLicenseScopeControls(test)}
+          ${renderLicenseTargets(test, targets, { editable: true })}
+          <div class="license-target-help">目标时间以你当前游戏画面为准；公开资料或版本更新不一致时，直接在这里改金银铜，复盘会立刻按新目标计算。</div>
+          ${renderManualAttemptControls(test)}
+          <div class="coach-status ${statusInfo.className}">
+            <span>遥测状态</span>
+            <strong>${escapeHtml(statusInfo.label)}</strong>
+            <small>${escapeHtml(statusInfo.copy)}</small>
+          </div>
+          <div class="coach-brief">
+            <span>本测试策略</span>
+            <p>${escapeHtml(type.coach)}</p>
+          </div>
+        </aside>
+      </section>
+      <section class="coach-guidance">
+        <div class="coach-card-title">
+          <span>实时复盘</span>
+          <strong>${selectedLap ? `${formatLapTime(selectedLap.lapSeconds)} · ${formatGap(goldGap)}` : "完成一次尝试后生成"}</strong>
+        </div>
+        ${selectedLap?.telemetryCoach ? renderTelemetryCoachAnalysis(selectedLap.telemetryCoach, "pending") : renderEmptyCoachGuidance(test)}
+      </section>
+    </article>
+  `;
+}
+
+function renderEmptyCoachGuidance(test) {
+  const type = getLicenseTypeMeta(test);
+  const scope = getLicenseScopeMeta(test);
+  return `
+    <div class="coach-empty-guidance">
+      <strong>还没有本次考试的遥测数据</strong>
+      <span>在 PS5 进入 ${escapeHtml(getLicenseDisplayId(test))}，跑完一次后保持本页面选中该测试；完成数据会进入这里，教练会按「${escapeHtml(type.label)} / ${escapeHtml(scope.label)}」分析，不再把区段考试硬套成完整赛道。</span>
+    </div>
+  `;
+}
+
+function renderManualAttemptControls(test) {
+  const attempt = telemetryState.manualAttempt;
+  const isRecording = attempt?.active === true;
+  const sampleCount = isRecording ? attempt.samples.length : telemetryState.liveTrace.length;
+  const duration = isRecording && attempt.samples.length > 1
+    ? (attempt.samples[attempt.samples.length - 1].t - attempt.samples[0].t) / 1000
+    : 0;
+  const displayLap = Number.isFinite(attempt?.displayLapSeconds) ? formatLapTime(attempt.displayLapSeconds) : "";
+  const online = telemetryState.connection === "receiving_decoded" && telemetryState.lastTick;
+  if (isRecording) {
+    const error = typeof attempt.error === "string" ? attempt.error : "";
+    return `
+      <div class="license-attempt-recorder is-recording">
+        <span>本次尝试录制中</span>
+        <strong>${formatLapTime(Math.max(0, duration))}</strong>
+        <small>${sampleCount} 个遥测采样 · ${escapeHtml(getLicenseDisplayId(test))}</small>
+        <label class="license-attempt-result">
+          <span>游戏结算成绩</span>
+          <input
+            type="text"
+            inputmode="decimal"
+            placeholder="例如 0:41.000"
+            value="${escapeHtml(displayLap)}"
+            data-license-attempt-time
+            aria-label="本次游戏结算成绩"
+          />
+        </label>
+        ${error ? `<small class="license-attempt-error">${escapeHtml(error)}</small>` : ""}
+        <div>
+          <button type="button" data-telemetry-action="finish-license-attempt">结束并生成复盘</button>
+          <button type="button" data-telemetry-action="discard-license-attempt">放弃</button>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="license-attempt-recorder">
+      <span>驾照考试捕获</span>
+      <strong>${online ? "实时数据已就绪" : "等待遥测在线"}</strong>
+      <small>区段考试不会总是触发 GT7 圈完成事件；开始前点录制，结束后手动生成复盘。</small>
+      <div>
+        <button type="button" data-telemetry-action="start-license-attempt" ${online ? "" : "disabled"}>开始本次尝试</button>
+      </div>
+    </div>
+  `;
+}
+
+function selectTrackForLicenseTest(test, shouldRender = true) {
+  const track = getTrackForLicenseTest(test);
+  if (!track) return null;
+  state.selected = track.name;
+  const official = getOfficialTrack(track);
+  state.selectedLayout = official?.layoutDetails?.[0]?.id ?? "";
+  state.calibratingLayout = "";
+  updateActiveTrackButton();
+  if (shouldRender) renderDetailOnly();
+  return track;
+}
+
+function getTrackForLicenseTest(test) {
+  if (!test?.track) return null;
+  const target = normalizeLicenseTrackName(test.track);
+  const mappedTrack = LICENSE_TRACK_TO_ATLAS_TRACK[target];
+  if (mappedTrack && trackByName.has(mappedTrack)) return trackByName.get(mappedTrack);
+  return tracks.find((track) => {
+    const official = getOfficialTrack(track);
+    const candidates = [
+      track.name,
+      getTrackZhName(track.name),
+      official?.officialName,
+      ...(official?.layoutNames ?? []),
+    ]
+      .filter(Boolean)
+      .map(normalizeLicenseTrackName);
+    return candidates.some((candidate) => candidate === target || candidate.includes(target) || target.includes(candidate));
+  }) ?? null;
+}
+
+function normalizeLicenseTrackName(value) {
+  return normalizeName(String(value ?? ""))
+    .replace(/\(wet\)/g, "")
+    .replace(/\breverse\b/g, "")
+    .replace(/\bnurburgring\b/g, "nurburgring")
+    .replace(/\s*-\s*/g, " ")
+    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function loadLicenseTargetOverrides() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LICENSE_TARGET_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function loadLicenseScopeOverrides() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LICENSE_SCOPE_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLicenseTargetOverrides() {
+  try {
+    localStorage.setItem(LICENSE_TARGET_STORAGE_KEY, JSON.stringify(licenseTargetOverrides));
+  } catch {
+    // Local target edits are convenience state; failing to persist should not block coaching.
+  }
+}
+
+function saveLicenseScopeOverrides() {
+  try {
+    localStorage.setItem(LICENSE_SCOPE_STORAGE_KEY, JSON.stringify(licenseScopeOverrides));
+  } catch {
+    // Same as target edits: the page can still render and analyze the active session.
+  }
+}
+
+function getLicenseTargets(test) {
+  const override = licenseTargetOverrides[test?.id] ?? {};
+  const manualTargets = test?.manualTargets === true;
+  const fallbackFor = (medal) => {
+    if (manualTargets && override[medal] === undefined) return null;
+    return toFiniteNumber(test?.[medal], null);
+  };
+  return {
+    gold: override.gold === undefined ? fallbackFor("gold") : toFiniteNumber(override.gold, fallbackFor("gold")),
+    silver: override.silver === undefined ? fallbackFor("silver") : toFiniteNumber(override.silver, fallbackFor("silver")),
+    bronze: override.bronze === undefined ? fallbackFor("bronze") : toFiniteNumber(override.bronze, fallbackFor("bronze")),
+  };
+}
+
+function handleLicenseTargetInput(input) {
+  const testId = input.dataset.licenseTargetInput;
+  const medal = input.dataset.licenseTargetMedal;
+  const test = LICENSE_TEST_BY_ID.get(testId);
+  if (!test || !["gold", "silver", "bronze"].includes(medal)) return;
+  const seconds = parseLapTime(input.value);
+  if (!seconds || seconds <= 0) {
+    input.classList.add("is-invalid");
+    return;
+  }
+  input.classList.remove("is-invalid");
+  licenseTargetOverrides[test.id] = {
+    ...licenseTargetOverrides[test.id],
+    [medal]: seconds,
+  };
+  saveLicenseTargetOverrides();
+  renderLicenseCoachPanel();
+  if (state.coachMode) renderCoachMode();
+}
+
+function resetLicenseTargetOverride(testId) {
+  if (!testId || !licenseTargetOverrides[testId]) return;
+  delete licenseTargetOverrides[testId];
+  saveLicenseTargetOverrides();
+}
+
+function setLicenseScopeOverride(testId, scope) {
+  if (!testId || !LICENSE_TEST_BY_ID.has(testId)) return;
+  if (!["full-lap", "segment"].includes(scope)) return;
+  licenseScopeOverrides[testId] = scope;
+  saveLicenseScopeOverrides();
+}
+
+function getLicenseScope(test) {
+  const override = licenseScopeOverrides[test?.id];
+  if (override === "full-lap" || override === "segment") return override;
+  if (test?.scope === "segment" || test?.scope === "full-lap") return test.scope;
+  return String(test?.type ?? "").includes("full-lap") ? "full-lap" : "segment";
+}
+
+function getLicenseScopeMeta(test) {
+  const scope = getLicenseScope(test);
+  if (scope === "segment") {
+    return {
+      scope,
+      label: "区段考试",
+      medalLabel: "区段金牌目标",
+      mapLabel: "赛道区段",
+      mapCopy: `${test?.track ?? "当前赛道"} · 只按考试区段复盘`,
+      copy: "这个项目不是按完整一圈训练。地图只做定位参考，遥测差距、刹车点和油门建议会按考试起终点之间的有效区段理解。",
+    };
+  }
+  return {
+    scope,
+    label: "整圈考试",
+    medalLabel: "金牌目标",
+    mapLabel: "赛道布局",
+    mapCopy: `${test?.track ?? "当前赛道"} · 完整布局`,
+    copy: "这个项目按完整一圈处理，遥测会优先寻找全圈主要刹车区、出弯油门延迟和金牌差距。",
+  };
+}
+
+function renderLicenseScopeControls(test) {
+  const scope = getLicenseScope(test);
+  return `
+    <div class="license-scope-toggle" aria-label="${escapeHtml(`${test.id} 考试范围`)}">
+      <button type="button" class="${scope === "segment" ? "active" : ""}" data-license-scope-test="${escapeHtml(test.id)}" data-license-scope="segment">区段考试</button>
+      <button type="button" class="${scope === "full-lap" ? "active" : ""}" data-license-scope-test="${escapeHtml(test.id)}" data-license-scope="full-lap">整圈考试</button>
+    </div>
+  `;
+}
+
+function getLicenseTypeMeta(test) {
+  const type = String(test?.type ?? "");
+  if (getLicenseScope(test) === "segment" && type.includes("full-lap")) {
+    return {
+      label: "区段计时",
+      coach: "这个项目按考试区段处理。先盯起点后的第一个制动区、最慢弯最低速和最后一个出弯油门，不要用整圈配速判断成败。",
+    };
+  }
+  if (type.includes("start-stop")) {
+    return {
+      label: "起步 / 停车",
+      coach: "重点看起步油门是否过早触发打滑、刹车峰值是否到位，以及最后是否提前滑行。建议用固定刹车标记练到每次停车点一致。",
+    };
+  }
+  if (type.includes("wet")) {
+    return {
+      label: "湿地控车",
+      coach: "重点看油门开启是否太突然、刹车释放是否拖到弯心后。湿地测试不要追极限入弯，优先保留干线并提早摆正车身。",
+    };
+  }
+  if (type.includes("dirt")) {
+    return {
+      label: "泥地 / 拉力",
+      coach: "重点看转向前的姿态准备和油门连续性。泥地分段允许轻微滑移，但不能长时间空油滑行。",
+    };
+  }
+  if (type.includes("snow")) {
+    return {
+      label: "雪地控车",
+      coach: "重点看入弯前是否提前把车身摆正，以及油门是否连续。雪地项目不要用铺装赛道的晚刹逻辑，先稳定牵引和方向输入。",
+    };
+  }
+  if (type.includes("consecutive")) {
+    return {
+      label: "连续弯",
+      coach: "重点看第一个弯是否为了单弯速度牺牲第二个弯出弯。建议优先优化最后一个出弯，而不是每个弯都晚刹。",
+    };
+  }
+  if (type.includes("urban")) {
+    return {
+      label: "街道赛道",
+      coach: "重点看贴墙风险和刹车稳定性。街道分段的收益常来自更早给油和减少修正，而不是更激进压线。",
+    };
+  }
+  if (type.includes("high-speed")) {
+    return {
+      label: "高速弯",
+      coach: "重点看入弯前是否多余松油，以及方向输入是否造成速度塌陷。练习目标是更小角度、更长全油。",
+    };
+  }
+  if (type.includes("elevation")) {
+    return {
+      label: "高低差弯",
+      coach: "重点看坡顶/下坡前后的制动稳定性。刹车点要按车身载荷变化提前，不要等车轻了再补救。",
+    };
+  }
+  if (type.includes("full-lap")) {
+    return {
+      label: "完整赛道计时",
+      coach: "完整圈才适合使用赛道级弯道映射。建议把全圈拆成 2-4 个主要失误段，先追金牌差距最大的部分。",
+    };
+  }
+  return {
+    label: "基础路线",
+    coach: "重点看刹车点、入弯速度和出弯油门。每次只改一个变量，避免不知道是哪一处带来提升。",
+  };
+}
+
 function initializeTelemetryPanel() {
   if (!telemetryPanelEl) return;
   renderTelemetryPanel();
+  initializeTelemetryStorage();
   connectTelemetryAgent();
+}
+
+async function initializeTelemetryStorage() {
+  const db = await openTelemetryDb();
+  telemetryState.dbAvailable = Boolean(db);
+  if (db) db.close();
+  await refreshTelemetryTemplates();
+  await rematchPendingTelemetryLaps();
+  renderTelemetryPanel();
+}
+
+function openTelemetryDb() {
+  return new Promise((resolve) => {
+    if (!("indexedDB" in window)) {
+      telemetryState.dbAvailable = false;
+      telemetryState.dbError = "当前浏览器不支持 IndexedDB，trace 只能临时显示。";
+      resolve(null);
+      return;
+    }
+
+    const request = indexedDB.open(TELEMETRY_DB_NAME, TELEMETRY_DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(TELEMETRY_TRACE_STORE)) {
+        const traceStore = db.createObjectStore(TELEMETRY_TRACE_STORE, { keyPath: "traceId" });
+        traceStore.createIndex("archivedLayoutId", "archivedLayoutId", { unique: false });
+        traceStore.createIndex("createdAt", "createdAt", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TELEMETRY_TEMPLATE_STORE)) {
+        const templateStore = db.createObjectStore(TELEMETRY_TEMPLATE_STORE, { keyPath: "templateId" });
+        templateStore.createIndex("layoutId", "layoutId", { unique: false });
+        templateStore.createIndex("createdAt", "createdAt", { unique: false });
+      }
+    };
+
+    request.onsuccess = () => {
+      telemetryState.dbError = "";
+      resolve(request.result);
+    };
+
+    request.onerror = () => {
+      telemetryState.dbAvailable = false;
+      telemetryState.dbError = request.error?.message || "IndexedDB 打开失败，trace 保存已关闭。";
+      resolve(null);
+    };
+  });
+}
+
+async function putTelemetryStoreRecord(storeName, record) {
+  const db = await openTelemetryDb();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    const transaction = db.transaction(storeName, "readwrite");
+    const request = transaction.objectStore(storeName).put(record);
+    request.onerror = () => resolve(false);
+    transaction.oncomplete = () => {
+      db.close();
+      resolve(true);
+    };
+    transaction.onerror = () => {
+      db.close();
+      resolve(false);
+    };
+  });
+}
+
+async function getTelemetryStoreRecord(storeName, key) {
+  const db = await openTelemetryDb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const request = transaction.objectStore(storeName).get(key);
+    request.onsuccess = () => resolve(request.result ?? null);
+    request.onerror = () => resolve(null);
+    transaction.oncomplete = () => db.close();
+    transaction.onerror = () => db.close();
+  });
+}
+
+async function getAllTelemetryStoreRecords(storeName) {
+  const db = await openTelemetryDb();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const request = transaction.objectStore(storeName).getAll();
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+    request.onerror = () => resolve([]);
+    transaction.oncomplete = () => db.close();
+    transaction.onerror = () => db.close();
+  });
+}
+
+async function deleteTelemetryStoreRecord(storeName, key) {
+  const db = await openTelemetryDb();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    const transaction = db.transaction(storeName, "readwrite");
+    transaction.objectStore(storeName).delete(key);
+    transaction.oncomplete = () => {
+      db.close();
+      resolve(true);
+    };
+    transaction.onerror = () => {
+      db.close();
+      resolve(false);
+    };
+  });
+}
+
+async function refreshTelemetryTemplates() {
+  const templates = await getAllTelemetryStoreRecords(TELEMETRY_TEMPLATE_STORE);
+  telemetryState.templates = templates
+    .map(sanitizeTelemetryTemplate)
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+}
+
+function sanitizeTelemetryTemplate(template) {
+  if (!template || typeof template !== "object") return null;
+  if (typeof template.layoutId !== "string" || !template.layoutId) return null;
+  if (!Array.isArray(template.fingerprint) || template.fingerprint.length < 8) return null;
+  return {
+    templateId: typeof template.templateId === "string" ? template.templateId : createSessionId(),
+    layoutId: template.layoutId,
+    trackName: typeof template.trackName === "string" ? template.trackName : "",
+    layoutName: typeof template.layoutName === "string" ? template.layoutName : getLayoutLabelById(template.layoutId),
+    sourceTraceId: typeof template.sourceTraceId === "string" ? template.sourceTraceId : "",
+    createdAt: typeof template.createdAt === "string" && Date.parse(template.createdAt) ? template.createdAt : new Date().toISOString(),
+    fingerprint: template.fingerprint,
+  };
+}
+
+async function rematchPendingTelemetryLaps() {
+  if (!telemetryState.pendingLaps.length || !telemetryState.templates.length) return;
+  const next = [];
+  for (const lap of telemetryState.pendingLaps) {
+    const record = await getTelemetryStoreRecord(TELEMETRY_TRACE_STORE, lap.traceId);
+    const match = record?.trace ? matchTelemetryTrace(record.trace) : null;
+    next.push(sanitizePendingTelemetryLap({ ...lap, ...buildTelemetryMatchPayload(match) }));
+  }
+  telemetryState.pendingLaps = next.filter(Boolean).slice(0, 12);
+  persistPendingTelemetryLaps();
 }
 
 function loadPendingTelemetryLaps() {
@@ -2630,12 +4071,21 @@ function sanitizePendingTelemetryLap(lap) {
   const lapSeconds = Number(lap.lapSeconds);
   if (!Number.isFinite(lapSeconds) || lapSeconds <= 0) return null;
   const summary = lap.summary && typeof lap.summary === "object" ? lap.summary : {};
+  const confidence = toFiniteNumber(lap.matchConfidence, 0);
+  const matchStatus = ["suggested", "confirm", "unknown"].includes(lap.matchStatus) ? lap.matchStatus : "unknown";
   return {
     traceId: typeof lap.traceId === "string" ? lap.traceId : createSessionId(),
     lapSeconds: Number(lapSeconds.toFixed(3)),
     vehicle: typeof lap.vehicle === "string" ? lap.vehicle.slice(0, 120) : "",
     source: typeof lap.source === "string" ? lap.source.slice(0, 80) : "telemetry",
     timestamp: typeof lap.timestamp === "string" && Date.parse(lap.timestamp) ? lap.timestamp : new Date().toISOString(),
+    matchedLayoutId: typeof lap.matchedLayoutId === "string" ? lap.matchedLayoutId : "",
+    matchLayoutName: typeof lap.matchLayoutName === "string" ? lap.matchLayoutName.slice(0, 120) : "",
+    matchConfidence: Math.min(1, Math.max(0, Number(confidence.toFixed(3)))),
+    matchStatus,
+    matchReason: typeof lap.matchReason === "string" ? lap.matchReason.slice(0, 180) : "",
+    licenseTestId: typeof lap.licenseTestId === "string" ? lap.licenseTestId.slice(0, 16) : "",
+    telemetryCoach: sanitizeTelemetryCoachAnalysis(lap.telemetryCoach),
     summary: {
       samples: toFiniteNumber(summary.samples, 0),
       durationSeconds: toFiniteNumber(summary.durationSeconds, lapSeconds),
@@ -2655,12 +4105,28 @@ function toFiniteNumber(value, fallback) {
   return Number.isFinite(number) ? number : fallback;
 }
 
-function archiveTelemetryLap(traceId) {
+async function archiveTelemetryLap(traceId) {
   const lap = telemetryState.pendingLaps.find((item) => item.traceId === traceId);
   const activeLayout = getCurrentActiveLayout();
   if (!lap || !activeLayout) return;
+  const traceRecord = await getTelemetryStoreRecord(TELEMETRY_TRACE_STORE, traceId);
+  const telemetryCoach = lap.telemetryCoach ??
+    buildTelemetryCoachAnalysis(traceRecord?.trace ?? [], lap, activeLayout, getActiveLicenseTest());
 
   const record = getTrainingRecord(activeLayout.id);
+  const hasConfidentOtherMatch = lap.matchedLayoutId &&
+    lap.matchedLayoutId !== activeLayout.id &&
+    lap.matchConfidence >= TELEMETRY_MATCH_THRESHOLDS.confirm;
+
+  if (hasConfidentOtherMatch) {
+    const currentLabel = getLayoutLabelById(activeLayout.id);
+    const matchedLabel = lap.matchLayoutName || getLayoutLabelById(lap.matchedLayoutId);
+    const confirmed = window.confirm(
+      `这圈遥测更像「${matchedLabel}」，当前页面是「${currentLabel}」。\n\n确认仍然归档到当前布局吗？`
+    );
+    if (!confirmed) return;
+  }
+
   addTrainingSession(
     activeLayout.id,
     {
@@ -2670,6 +4136,8 @@ function archiveTelemetryLap(traceId) {
       mistakes: buildTelemetryMistakes(lap),
       feeling: buildTelemetryFeeling(lap),
       traceId: lap.traceId,
+      telemetrySummary: lap.summary,
+      telemetryCoach,
     },
     {
       status: record.status === "complete" ? "complete" : "active",
@@ -2678,6 +4146,7 @@ function archiveTelemetryLap(traceId) {
       currentSetup: "Telemetry Auto",
     }
   );
+  await markTelemetryTraceArchived(traceId, activeLayout.id);
   dismissTelemetryLap(traceId, false);
   renderTelemetryPanel();
 }
@@ -2701,10 +4170,19 @@ function buildTelemetryFeeling(lap) {
     `Telemetry Auto · ${formatLapTime(lap.lapSeconds)}`,
     `极速 ${summary.maxSpeedKmh ?? "--"} km/h`,
     `均速 ${summary.avgSpeedKmh ?? "--"} km/h`,
-    `平均油门 ${summary.avgThrottle ?? "--"}%`,
-    `平均刹车 ${summary.avgBrake ?? "--"}%`,
+    `刹车事件 ${summary.brakeEvents ?? 0} 次`,
     `全油占比 ${summary.fullThrottlePct ?? "--"}%`,
   ].join("；");
+}
+
+async function markTelemetryTraceArchived(traceId, layoutId) {
+  const record = await getTelemetryStoreRecord(TELEMETRY_TRACE_STORE, traceId);
+  if (!record) return false;
+  return putTelemetryStoreRecord(TELEMETRY_TRACE_STORE, {
+    ...record,
+    archivedLayoutId: layoutId,
+    archivedAt: new Date().toISOString(),
+  });
 }
 
 function connectTelemetryAgent(force = false) {
@@ -2767,6 +4245,7 @@ function handleTelemetryMessage(message) {
     telemetryState.status = message.connection === "receiving_decoded" ? "online" : "waiting";
     telemetryState.connection = message.connection ?? "connected";
     renderTelemetryPanel();
+    if (state.coachMode) renderCoachMode();
     return;
   }
   if (message.type === "lap_completed") {
@@ -2775,6 +4254,7 @@ function handleTelemetryMessage(message) {
   }
   if (message.type === "telemetry_tick") {
     telemetryState.lastTick = message.telemetry;
+    rememberLiveTelemetrySample(message.telemetry);
     telemetryState.status = "online";
     telemetryState.connection = "receiving_decoded";
     if (message.samplesPerSecond != null) {
@@ -2785,15 +4265,401 @@ function handleTelemetryMessage(message) {
         decodedCount: message.decodedCount,
       };
     }
-    renderTelemetryPanel();
+    renderLiveTelemetryUi();
   }
 }
 
+function renderLiveTelemetryUi(force = false) {
+  const now = performance.now();
+  if (!force && now - telemetryState.lastLiveRenderAt < 1000) return;
+  telemetryState.lastLiveRenderAt = now;
+  renderTelemetryPanel();
+}
+
+function rememberLiveTelemetrySample(telemetry) {
+  const sample = sampleFromLiveTelemetry(telemetry);
+  if (!sample) return;
+  telemetryState.liveTrace.push(sample);
+  const cutoff = sample.t - 180000;
+  telemetryState.liveTrace = telemetryState.liveTrace.filter((item) => item.t >= cutoff).slice(-2400);
+  if (telemetryState.manualAttempt?.active) {
+    telemetryState.manualAttempt.samples.push(sample);
+    telemetryState.manualAttempt.samples = telemetryState.manualAttempt.samples.slice(-3600);
+  }
+}
+
+function sampleFromLiveTelemetry(telemetry) {
+  if (!telemetry || typeof telemetry !== "object") return null;
+  const now = Date.now();
+  const position = telemetry.position ?? {};
+  return {
+    t: now,
+    speedKmh: toFiniteNumber(telemetry.speedKmh, 0),
+    throttle: clampTelemetryPercent(telemetry.throttle) ?? 0,
+    brake: clampTelemetryPercent(telemetry.brake) ?? 0,
+    gear: toFiniteNumber(telemetry.currentGear, 0),
+    position: {
+      x: toFiniteNumber(position.x, 0),
+      y: toFiniteNumber(position.y, 0),
+      z: toFiniteNumber(position.z, 0),
+    },
+  };
+}
+
+function startManualLicenseAttempt() {
+  const seed = telemetryState.liveTrace.slice(-3);
+  telemetryState.manualAttempt = {
+    active: true,
+    licenseTestId: getActiveLicenseTest()?.id ?? "",
+    startedAt: new Date().toISOString(),
+    displayLapSeconds: null,
+    error: "",
+    samples: seed,
+  };
+  renderTelemetryPanel();
+  if (state.coachMode) renderCoachMode();
+}
+
+function handleManualAttemptTimeInput(input) {
+  if (!telemetryState.manualAttempt?.active) return;
+  const value = input.value.trim();
+  if (!value) {
+    telemetryState.manualAttempt.displayLapSeconds = null;
+    telemetryState.manualAttempt.error = "";
+    input.classList.remove("is-invalid");
+    return;
+  }
+  const seconds = parseLapTime(value);
+  if (!seconds || seconds <= 0) {
+    telemetryState.manualAttempt.error = "成绩格式不正确，请输入类似 41.000 或 0:41.000。";
+    input.classList.add("is-invalid");
+    return;
+  }
+  input.classList.remove("is-invalid");
+  telemetryState.manualAttempt.displayLapSeconds = seconds;
+  telemetryState.manualAttempt.error = "";
+}
+
+function discardManualLicenseAttempt() {
+  telemetryState.manualAttempt = null;
+  renderTelemetryPanel();
+  if (state.coachMode) renderCoachMode();
+}
+
+function finishManualLicenseAttempt() {
+  const attempt = telemetryState.manualAttempt;
+  if (!attempt?.active) return;
+  const trace = sanitizeTelemetryTrace(attempt.samples);
+  if (trace.length < 10) {
+    telemetryState.manualAttempt.error = "遥测采样还太少，开始尝试后至少跑几秒再生成复盘。";
+    if (state.coachMode) renderCoachMode();
+    return;
+  }
+  const recordedSeconds = getTraceDurationSeconds(trace);
+  const resultSeconds = getManualAttemptResultSeconds(attempt, recordedSeconds);
+  if (!resultSeconds) {
+    telemetryState.manualAttempt.error = "请先填写游戏结算画面显示的本次成绩，例如 41.000 或 0:41.000。";
+    if (state.coachMode) renderCoachMode();
+    return;
+  }
+  const message = buildManualLicenseAttemptMessage(trace, attempt, resultSeconds);
+  telemetryState.manualAttempt = null;
+  handleTelemetryLapCompleted(message);
+  renderTelemetryPanel();
+  if (state.coachMode) renderCoachMode();
+}
+
+function getTraceDurationSeconds(trace) {
+  const first = trace[0];
+  const last = trace[trace.length - 1];
+  return Math.max(0.1, (last.t - first.t) / 1000);
+}
+
+function getManualAttemptResultSeconds(attempt, fallbackSeconds) {
+  if (Number.isFinite(attempt.displayLapSeconds) && attempt.displayLapSeconds > 0) {
+    return attempt.displayLapSeconds;
+  }
+  return null;
+}
+
+function buildManualLicenseAttemptMessage(trace, attempt, resultSeconds) {
+  const durationSeconds = getTraceDurationSeconds(trace);
+  const summary = buildTelemetrySummaryFromTrace(trace, durationSeconds);
+  return {
+    type: "lap_completed",
+    traceId: createSessionId().replace(/^s-/, "trace-"),
+    source: "manual_license_capture",
+    lapSeconds: Number(resultSeconds.toFixed(3)),
+    vehicle: "",
+    timestamp: new Date().toISOString(),
+    summary,
+    trace,
+    manualCapture: true,
+    licenseTestId: attempt.licenseTestId,
+  };
+}
+
+function buildTelemetrySummaryFromTrace(trace, durationSeconds) {
+  const speedValues = trace.map((sample) => sample.speedKmh);
+  const throttleValues = trace.map((sample) => sample.throttle);
+  const brakeValues = trace.map((sample) => sample.brake);
+  let brakeEvents = 0;
+  let braking = false;
+  for (const value of brakeValues) {
+    if (value > 8 && !braking) {
+      brakeEvents += 1;
+      braking = true;
+    } else if (value <= 4) {
+      braking = false;
+    }
+  }
+  const avg = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  const pct = (values, predicate) => values.length ? (values.filter(predicate).length / values.length) * 100 : 0;
+  return {
+    samples: trace.length,
+    durationSeconds: Number(durationSeconds.toFixed(3)),
+    maxSpeedKmh: Number(Math.max(0, ...speedValues).toFixed(1)),
+    avgSpeedKmh: Number(avg(speedValues).toFixed(1)),
+    avgThrottle: Number(avg(throttleValues).toFixed(1)),
+    avgBrake: Number(avg(brakeValues).toFixed(1)),
+    brakeEvents,
+    heavyBrakePct: Number(pct(brakeValues, (value) => value >= 80).toFixed(1)),
+    fullThrottlePct: Number(pct(throttleValues, (value) => value >= 95).toFixed(1)),
+  };
+}
+
 function handleTelemetryLapCompleted(message) {
-  const lap = sanitizePendingTelemetryLap(message);
+  const match = matchTelemetryTrace(message.trace);
+  const coachLayout = getTelemetryCoachLayout(match);
+  const telemetryCoach = buildTelemetryCoachAnalysis(message.trace, message, coachLayout, getActiveLicenseTest());
+  const lap = sanitizePendingTelemetryLap({
+    ...message,
+    ...buildTelemetryMatchPayload(match),
+    licenseTestId: getActiveLicenseTest()?.id ?? "",
+    telemetryCoach,
+  });
   if (!lap) return;
+  storeTelemetryTrace(lap, message.trace, match, telemetryCoach);
   telemetryState.pendingLaps = [lap, ...telemetryState.pendingLaps.filter((item) => item.traceId !== lap.traceId)].slice(0, 12);
   persistPendingTelemetryLaps();
+  renderTelemetryPanel();
+  if (state.coachMode) renderCoachMode();
+}
+
+function getTelemetryCoachLayout(match) {
+  if (match?.layoutId) {
+    const matchedEntry = getLayoutEntryById(match.layoutId);
+    if (matchedEntry?.layout) return matchedEntry.layout;
+  }
+  return getCurrentActiveLayout();
+}
+
+async function storeTelemetryTrace(lap, trace, match, telemetryCoach = null) {
+  const sanitizedTrace = sanitizeTelemetryTrace(trace);
+  if (!sanitizedTrace.length) return false;
+  const stored = await putTelemetryStoreRecord(TELEMETRY_TRACE_STORE, {
+    traceId: lap.traceId,
+    trace: sanitizedTrace,
+    lapSeconds: lap.lapSeconds,
+    vehicle: lap.vehicle,
+    source: lap.source,
+    summary: lap.summary,
+    createdAt: lap.timestamp,
+    archivedLayoutId: "",
+    matchedLayoutId: match?.layoutId ?? "",
+    matchConfidence: match?.confidence ?? 0,
+    matchReason: match?.reason ?? "",
+    licenseTestId: lap.licenseTestId ?? "",
+    telemetryCoach: sanitizeTelemetryCoachAnalysis(telemetryCoach),
+  });
+  telemetryState.dbAvailable = telemetryState.dbAvailable || stored;
+  if (!stored) telemetryState.dbError = telemetryState.dbError || "trace 保存失败，IndexedDB 可能不可用。";
+  renderTelemetryPanel();
+  return stored;
+}
+
+function sanitizeTelemetryTrace(trace) {
+  if (!Array.isArray(trace)) return [];
+  return trace
+    .map((sample) => {
+      const position = sample?.position ?? {};
+      return {
+        t: toFiniteNumber(sample?.t, 0),
+        speedKmh: toFiniteNumber(sample?.speedKmh, 0),
+        throttle: toFiniteNumber(sample?.throttle, 0),
+        brake: toFiniteNumber(sample?.brake, 0),
+        gear: toFiniteNumber(sample?.gear, 0),
+        position: {
+          x: toFiniteNumber(position.x, NaN),
+          y: toFiniteNumber(position.y, NaN),
+          z: toFiniteNumber(position.z, NaN),
+        },
+      };
+    })
+    .filter((sample) => Number.isFinite(sample.position.x) && Number.isFinite(sample.position.z))
+    .slice(0, 360);
+}
+
+function buildTelemetryMatchPayload(match) {
+  if (!match) {
+    return {
+      matchedLayoutId: "",
+      matchLayoutName: "",
+      matchConfidence: 0,
+      matchStatus: "unknown",
+      matchReason: "没有可用 trace 或布局模板。",
+    };
+  }
+  const status = match.confidence >= TELEMETRY_MATCH_THRESHOLDS.suggested
+    ? "suggested"
+    : match.confidence >= TELEMETRY_MATCH_THRESHOLDS.confirm
+      ? "confirm"
+      : "unknown";
+  return {
+    matchedLayoutId: match.layoutId ?? "",
+    matchLayoutName: match.layoutName ?? "",
+    matchConfidence: match.confidence ?? 0,
+    matchStatus: status,
+    matchReason: match.reason ?? "",
+  };
+}
+
+function matchTelemetryTrace(trace) {
+  const fingerprint = createTraceFingerprint(trace);
+  if (!fingerprint.length) {
+    return {
+      layoutId: "",
+      layoutName: "",
+      confidence: 0,
+      reason: "trace 中没有足够的位置采样。",
+    };
+  }
+  if (!telemetryState.templates.length) {
+    return {
+      layoutId: "",
+      layoutName: "",
+      confidence: 0,
+      reason: "尚未绑定任何布局模板，需手动确认。",
+    };
+  }
+
+  const matches = telemetryState.templates
+    .map((template) => {
+      const comparison = compareTraceFingerprints(fingerprint, template.fingerprint);
+      return {
+        ...template,
+        confidence: comparison.confidence,
+        distance: comparison.distance,
+        reversed: comparison.reversed,
+      };
+    })
+    .sort((a, b) => b.confidence - a.confidence);
+
+  const best = matches[0];
+  if (!best) return null;
+  const directionText = best.reversed ? "反向采样匹配" : "同向采样匹配";
+  return {
+    layoutId: best.layoutId,
+    layoutName: best.layoutName || getLayoutLabelById(best.layoutId),
+    confidence: Number(best.confidence.toFixed(3)),
+    reason: `${directionText} · ${Math.round(best.confidence * 100)}% · 模板 ${formatRelativeDate(best.createdAt)}`,
+  };
+}
+
+function createTraceFingerprint(trace, points = 72) {
+  const samples = sanitizeTelemetryTrace(trace);
+  if (samples.length < 12) return [];
+  const picked = [];
+  const step = (samples.length - 1) / Math.max(1, points - 1);
+  for (let index = 0; index < points; index += 1) {
+    const sample = samples[Math.round(index * step)];
+    picked.push({ x: sample.position.x, y: sample.position.z });
+  }
+
+  const xs = picked.map((point) => point.x);
+  const ys = picked.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  const scale = Math.max(maxX - minX, maxY - minY, 1);
+
+  return picked.map((point) => ({
+    x: Number(((point.x - centerX) / scale).toFixed(5)),
+    y: Number(((point.y - centerY) / scale).toFixed(5)),
+  }));
+}
+
+function compareTraceFingerprints(current, template) {
+  const same = averageTraceDistance(current, template);
+  const reversed = averageTraceDistance(current, [...template].reverse());
+  const distance = Math.min(same, reversed);
+  return {
+    distance,
+    reversed: reversed < same,
+    confidence: Math.min(1, Math.max(0, 1 - distance / 0.22)),
+  };
+}
+
+function averageTraceDistance(a, b) {
+  const length = Math.min(a.length, b.length);
+  if (!length) return Infinity;
+  let total = 0;
+  for (let index = 0; index < length; index += 1) {
+    const dx = a[index].x - b[index].x;
+    const dy = a[index].y - b[index].y;
+    total += Math.hypot(dx, dy);
+  }
+  return total / length;
+}
+
+async function bindTelemetryTemplate(traceId) {
+  const activeLayout = getCurrentActiveLayout();
+  const track = trackByName.get(state.selected);
+  if (!activeLayout || !track) return;
+
+  const record = await getTelemetryStoreRecord(TELEMETRY_TRACE_STORE, traceId);
+  if (!record?.trace?.length) {
+    window.alert("没有找到这圈的 trace。请确认 IndexedDB 可用，或重新完成一圈后再绑定模板。");
+    return;
+  }
+
+  const fingerprint = createTraceFingerprint(record.trace);
+  if (!fingerprint.length) {
+    window.alert("这圈位置采样不足，无法作为布局模板。");
+    return;
+  }
+
+  const template = {
+    templateId: `tpl-${activeLayout.id}-${Date.now().toString(36)}`,
+    layoutId: activeLayout.id,
+    trackName: track.name,
+    layoutName: activeLayout.name,
+    sourceTraceId: traceId,
+    createdAt: new Date().toISOString(),
+    fingerprint,
+  };
+
+  const stored = await putTelemetryStoreRecord(TELEMETRY_TEMPLATE_STORE, template);
+  if (!stored) {
+    window.alert("模板保存失败。请检查浏览器是否允许本地 IndexedDB。");
+    return;
+  }
+
+  await refreshTelemetryTemplates();
+  await rematchPendingTelemetryLaps();
+  renderTelemetryPanel();
+}
+
+async function deleteTelemetryTemplate(templateId) {
+  if (!templateId) return;
+  const confirmed = window.confirm("删除这个布局遥测模板？删除后不会影响已经归档的训练记录。");
+  if (!confirmed) return;
+  await deleteTelemetryStoreRecord(TELEMETRY_TEMPLATE_STORE, templateId);
+  await refreshTelemetryTemplates();
+  await rematchPendingTelemetryLaps();
   renderTelemetryPanel();
 }
 
@@ -2801,7 +4667,7 @@ function renderTelemetryPanel() {
   if (!telemetryPanelEl) return;
   const tick = telemetryState.lastTick;
   const status = telemetryState.lastStatus ?? {};
-  const statusLabel = getTelemetryStatusLabel();
+  const statusInfo = getTelemetryStatusInfo();
   const speed = tick?.speedKmh == null ? "--" : tick.speedKmh.toFixed(1);
   const rpm = tick?.rpm == null ? "--" : Math.round(tick.rpm).toLocaleString("en-US");
   const gear = tick?.currentGear == null ? "--" : formatTelemetryGear(tick.currentGear);
@@ -2820,10 +4686,11 @@ function renderTelemetryPanel() {
       </div>
       <button type="button" class="telemetry-connect" data-telemetry-action="connect">重新连接</button>
     </div>
+    ${renderTelemetryStatusAlert(statusInfo)}
     <div class="telemetry-live-grid">
-      <article class="telemetry-card telemetry-status-card ${statusLabel.className}">
+      <article class="telemetry-card telemetry-status-card ${statusInfo.className}">
         <small>连接状态</small>
-        <strong>${statusLabel.label}</strong>
+        <strong>${statusInfo.label}</strong>
         <span>${escapeHtml(source)} · ${escapeHtml(sampleRate)}</span>
       </article>
       <article class="telemetry-card">
@@ -2844,17 +4711,86 @@ function renderTelemetryPanel() {
         </div>
       </article>
     </div>
-    ${renderPendingTelemetryLaps()}
+    ${renderTelemetryStandby()}
+  `;
+}
+
+function renderTelemetryStandby() {
+  const pendingCount = telemetryState.pendingLaps.length;
+  const templateCount = telemetryState.templates.length;
+  return `
+    <details class="telemetry-standby">
+      <summary>
+        <span>
+          <strong>Telemetry Standby</strong>
+          <small>${pendingCount} 圈待归档 · ${templateCount} 个布局模板</small>
+        </span>
+      </summary>
+      <div class="telemetry-standby-body">
+        ${renderTelemetryTemplatePanel()}
+        ${renderPendingTelemetryLaps()}
+      </div>
+    </details>
+  `;
+}
+
+function renderTelemetryStatusAlert(statusInfo) {
+  const hints = statusInfo.hints
+    .slice(0, 6)
+    .map((hint) => `<li>${escapeHtml(hint)}</li>`)
+    .join("");
+  return `
+    <div class="telemetry-alert ${statusInfo.className}">
+      <div>
+        <strong>${escapeHtml(statusInfo.title)}</strong>
+        <span>${escapeHtml(statusInfo.copy)}</span>
+      </div>
+      <a class="telemetry-health-link" href="${TELEMETRY_HEALTH_URL}" target="_blank" rel="noreferrer">查看 /health</a>
+      ${hints ? `<ul>${hints}</ul>` : ""}
+    </div>
+  `;
+}
+
+function renderTelemetryTemplatePanel() {
+  const activeLayout = getCurrentActiveLayout();
+  const activeTemplates = activeLayout
+    ? telemetryState.templates.filter((template) => template.layoutId === activeLayout.id)
+    : [];
+  const dbText = telemetryState.dbAvailable
+    ? `IndexedDB 已启用 · ${telemetryState.templates.length} 个布局模板`
+    : `Trace 存储未启用 · ${telemetryState.dbError || "等待浏览器授权"}`;
+  const templateRows = activeTemplates.length
+    ? activeTemplates
+        .slice(0, 3)
+        .map(
+          (template) => `
+            <span class="telemetry-template-pill">
+              ${escapeHtml(formatRelativeDate(template.createdAt))}
+              <button type="button" data-telemetry-action="delete-template" data-telemetry-template-id="${escapeHtml(template.templateId)}" aria-label="删除模板">×</button>
+            </span>
+          `,
+        )
+        .join("")
+    : `<span class="telemetry-template-empty">当前布局还没有模板，先在待归档圈里绑定一圈。</span>`;
+
+  return `
+    <div class="telemetry-template-panel">
+      <div>
+        <strong>布局识别模板</strong>
+        <small>${escapeHtml(dbText)}</small>
+      </div>
+      <div class="telemetry-template-list">${templateRows}</div>
+    </div>
   `;
 }
 
 function renderPendingTelemetryLaps() {
   if (!telemetryState.pendingLaps.length) {
     return `
-      <div class="telemetry-pending empty">
+      <div class="telemetry-pending empty is-standby-empty">
         <span>待归档遥测圈</span>
         <strong>暂无</strong>
-        <small>完成一圈后会出现在这里，确认赛道布局后再写入训练记录。</small>
+        <small>完成一圈后会进入这里，确认赛道布局后再写入训练记录。</small>
       </div>
     `;
   }
@@ -2879,18 +4815,57 @@ function renderPendingTelemetryLaps() {
 }
 
 function renderPendingTelemetryLap(lap) {
+  const activeLayout = getCurrentActiveLayout();
+  const match = getTelemetryMatchMeta(lap, activeLayout);
   return `
     <article class="telemetry-lap-card">
       <div>
         <strong>${formatLapTime(lap.lapSeconds)}</strong>
         <span>${escapeHtml(formatTelemetrySummary(lap))}</span>
+        <small class="telemetry-trace-id">${escapeHtml(lap.traceId)}</small>
+        <span class="telemetry-match-badge ${match.className}">${escapeHtml(match.label)}</span>
+        <small class="telemetry-match-reason">${escapeHtml(match.reason)}</small>
+        ${renderTelemetryCoachAnalysis(lap.telemetryCoach, "pending")}
       </div>
       <div class="telemetry-lap-actions">
         <button type="button" data-telemetry-action="archive-lap" data-telemetry-lap-id="${escapeHtml(lap.traceId)}">归档到当前布局</button>
+        <button type="button" data-telemetry-action="bind-template" data-telemetry-lap-id="${escapeHtml(lap.traceId)}">绑定为当前布局模板</button>
         <button type="button" data-telemetry-action="dismiss-lap" data-telemetry-lap-id="${escapeHtml(lap.traceId)}">忽略</button>
       </div>
     </article>
   `;
+}
+
+function getTelemetryMatchMeta(lap, activeLayout) {
+  const confidence = Math.round((lap.matchConfidence ?? 0) * 100);
+  if (!lap.matchedLayoutId || lap.matchStatus === "unknown") {
+    return {
+      label: "未知布局",
+      reason: lap.matchReason || "没有模板时不会自动归档，请手动确认或绑定模板。",
+      className: "is-unknown",
+    };
+  }
+  const layoutName = lap.matchLayoutName || getLayoutLabelById(lap.matchedLayoutId);
+  const conflicts = activeLayout && lap.matchedLayoutId !== activeLayout.id;
+  if (lap.matchStatus === "suggested" && !conflicts) {
+    return {
+      label: `建议归档 · ${confidence}%`,
+      reason: lap.matchReason || `匹配到 ${layoutName}`,
+      className: "is-suggested",
+    };
+  }
+  if (conflicts) {
+    return {
+      label: `布局冲突 · ${confidence}%`,
+      reason: `匹配到 ${layoutName}，当前页面是 ${getLayoutLabelById(activeLayout.id)}。归档前会再次确认。`,
+      className: "is-conflict",
+    };
+  }
+  return {
+    label: `需确认 · ${confidence}%`,
+    reason: lap.matchReason || `可能是 ${layoutName}，建议人工确认。`,
+    className: "is-confirm",
+  };
 }
 
 function formatTelemetrySummary(lap) {
@@ -2904,12 +4879,374 @@ function formatTelemetrySummary(lap) {
   return parts.join(" · ");
 }
 
-function getTelemetryStatusLabel() {
-  if (telemetryState.status === "online") return { label: "实时在线", className: "is-online" };
-  if (telemetryState.status === "waiting") return { label: "等待遥测", className: "is-waiting" };
-  if (telemetryState.status === "connecting") return { label: "连接中", className: "is-waiting" };
-  if (telemetryState.status === "unsupported") return { label: "浏览器不支持", className: "is-offline" };
-  return { label: "手动模式", className: "is-offline" };
+function renderTelemetryCoachAnalysis(coach, variant = "pending") {
+  const sanitized = sanitizeTelemetryCoachAnalysis(coach);
+  if (!sanitized) return "";
+  const items = sanitized.priorities
+    .slice(0, variant === "compact" ? 2 : 4)
+    .map(
+      (item) => `
+        <li class="coach-priority is-${escapeHtml(item.severity)}">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span>${escapeHtml(item.body)}</span>
+          <small>${escapeHtml([item.segmentLabel, item.metric].filter(Boolean).join(" · "))}</small>
+        </li>
+      `,
+    )
+    .join("");
+  return `
+    <div class="telemetry-coach ${variant === "compact" ? "is-compact" : ""}">
+      <div class="telemetry-coach-head">
+        <span>AI Coach</span>
+        <strong>${sanitized.score}</strong>
+      </div>
+      <p>${escapeHtml(sanitized.summary || "本圈已完成基础分析，优先处理下方最影响圈速的问题。")}</p>
+      <ol>${items}</ol>
+    </div>
+  `;
+}
+
+function buildTelemetryCoachAnalysis(trace, lap, activeLayout, licenseTest = null) {
+  const samples = buildTelemetryPerformanceSamples(trace);
+  if (samples.length < 24) {
+    return {
+      score: 55,
+      summary: "trace 采样不足，先确保 telemetry-agent 在完整一圈内持续在线。",
+      segmentCount: 0,
+      priorities: [
+        {
+          title: "先拿到完整一圈数据",
+          body: "进入实际驾驶画面后跑完整圈，完成后再归档；完整 trace 才能判断刹车点、入弯速度和出弯油门。",
+          metric: `${samples.length} samples`,
+          segmentLabel: "数据质量",
+          severity: "high",
+        },
+      ],
+    };
+  }
+
+  const summary = lap?.summary ?? {};
+  const brakeZones = detectTelemetryBrakeZones(samples, activeLayout);
+  const coastingPct = percentOfSamples(samples, (sample) => sample.throttle < 18 && sample.brake < 8);
+  const fullThrottlePct = toFiniteNumber(summary.fullThrottlePct, percentOfSamples(samples, (sample) => sample.throttle >= 95));
+  const licenseTargets = licenseTest ? getLicenseTargets(licenseTest) : null;
+  const licenseScope = licenseTest ? getLicenseScopeMeta(licenseTest) : null;
+  const licenseGap = licenseTest && Number.isFinite(licenseTargets.gold)
+    ? toFiniteNumber(lap?.lapSeconds, 0) - licenseTargets.gold
+    : null;
+  const heavyBrakeZones = brakeZones.filter((zone) => zone.peakBrake >= 82 && zone.durationSeconds >= 0.9);
+  const slowEntryZones = brakeZones
+    .filter((zone) => zone.speedDropKmh >= 55 && zone.minSpeedKmh <= 90)
+    .sort((a, b) => b.speedDropKmh - a.speedDropKmh);
+  const exitDelayZones = brakeZones
+    .filter((zone) => zone.exitDelaySeconds >= 0.8 || zone.exitDelayProgress >= 0.035)
+    .sort((a, b) => b.exitDelaySeconds - a.exitDelaySeconds);
+  const priorities = [];
+
+  if (licenseTest && Number.isFinite(licenseGap)) {
+    const licenseLabel = getLicenseDisplayId(licenseTest);
+    priorities.push({
+      title: licenseGap <= 0 ? "已达金牌节奏" : "先追金牌差距",
+      body: licenseGap <= 0
+        ? `这次已经快过 ${licenseLabel} 金牌时间，下一步目标是稳定重复，而不是继续冒险。`
+        : `${licenseLabel} 距金牌还差 ${licenseGap.toFixed(3)}s。这个测试是「${getLicenseTypeMeta(licenseTest).label} / ${licenseScope.label}」，先按考试目标练，不要套用普通自由练习跑法。`,
+      metric: `金牌 ${formatLapTime(licenseTargets.gold)}`,
+      segmentLabel: licenseLabel,
+      severity: licenseGap > 1 ? "high" : licenseGap > 0 ? "medium" : "low",
+    });
+  }
+
+  if (licenseTest?.type.includes("start-stop")) {
+    const final = samples[samples.length - 1];
+    priorities.push({
+      title: "停车测试看最后 20 米",
+      body: "起步停车类测试不需要弯道映射。重点是满油起步后一次性建立强制动，尾段不要提前滑行；如果冲线前速度还高，刹车点要提前。",
+      metric: `终点速度 ${Math.round(final?.speedKmh ?? 0)} km/h`,
+      segmentLabel: licenseTest.id,
+      severity: (final?.speedKmh ?? 0) > 12 ? "high" : "medium",
+    });
+  }
+
+  if (licenseTest?.type.includes("wet") || licenseTest?.type.includes("dirt")) {
+    priorities.push({
+      title: licenseTest.type.includes("wet") ? "低抓地先稳油门" : "泥地先稳姿态",
+      body: licenseTest.type.includes("wet")
+        ? "湿地测试里，突然全油比晚一点全油更亏。把油门从 40% 到 100% 分两段展开，避免出弯打滑。"
+        : "泥地测试里，入弯前先让车身指向出口，再用油门维持滑移角；长时间空油会直接损失速度。",
+      metric: `滑行 ${coastingPct.toFixed(1)}%`,
+      segmentLabel: licenseTest.id,
+      severity: coastingPct > 10 ? "high" : "medium",
+    });
+  }
+
+  if (exitDelayZones.length) {
+    const zone = exitDelayZones[0];
+    priorities.push({
+      title: "出弯油门偏晚",
+      body: "松刹后到大油门之间的空窗偏长。下次把视线提前放到弯心后方，确认车头转向后更早、分段加油。",
+      metric: `延迟 ${zone.exitDelaySeconds.toFixed(1)}s`,
+      segmentLabel: zone.label,
+      severity: zone.exitDelaySeconds > 1.4 ? "high" : "medium",
+    });
+  }
+
+  if (coastingPct >= 12) {
+    priorities.push({
+      title: "滑行时间过多",
+      body: "油门和刹车都没有输入的比例偏高，通常意味着刹车点或入弯决策不够明确。练习时把每个弯固定成“刹车-释放-转向-给油”的节奏。",
+      metric: `滑行 ${coastingPct.toFixed(1)}%`,
+      segmentLabel: "全圈节奏",
+      severity: coastingPct >= 20 ? "high" : "medium",
+    });
+  }
+
+  if (slowEntryZones.length) {
+    const zone = slowEntryZones[0];
+    priorities.push({
+      title: "入弯速度损失偏大",
+      body: "这一段从入弯到最低速掉速明显。可以先保守推迟一点刹车释放点，而不是继续加大刹车峰值。",
+      metric: `掉速 ${Math.round(zone.speedDropKmh)} km/h`,
+      segmentLabel: zone.label,
+      severity: zone.speedDropKmh > 85 ? "high" : "medium",
+    });
+  }
+
+  if (heavyBrakeZones.length >= 2) {
+    const zone = heavyBrakeZones[0];
+    priorities.push({
+      title: "重刹保持太久",
+      body: "多个刹车区峰值足够高，但重刹持续偏长。目标是保持初段制动力，接近弯心前更平滑地释放，减少前轮负担。",
+      metric: `${heavyBrakeZones.length} 个重刹区`,
+      segmentLabel: zone.label,
+      severity: "medium",
+    });
+  }
+
+  if (fullThrottlePct < 38) {
+    priorities.push({
+      title: "全油比例偏低",
+      body: "直道和出弯段的满油时间偏少。先找最长直道前一个弯，专门练习更早摆正车身和更早踩满油。",
+      metric: `全油 ${fullThrottlePct.toFixed(1)}%`,
+      segmentLabel: "直道利用",
+      severity: fullThrottlePct < 28 ? "high" : "medium",
+    });
+  }
+
+  const brakeEvents = toFiniteNumber(summary.brakeEvents, brakeZones.length);
+  const expectedCorners = Number(activeLayout?.corners) || 0;
+  if (expectedCorners && brakeEvents > expectedCorners + 5) {
+    priorities.push({
+      title: "刹车修正次数偏多",
+      body: "刹车事件明显多于布局弯数，可能存在碎刹或方向修正。先把主要刹车点固定下来，再逐步追极限。",
+      metric: `刹车 ${brakeEvents} 次 / ${expectedCorners} 弯`,
+      segmentLabel: activeLayout?.name || "当前布局",
+      severity: "medium",
+    });
+  }
+
+  if (!priorities.length) {
+    priorities.push({
+      title: "本圈节奏比较干净",
+      body: "没有发现明显的重刹拖延或长时间滑行。下一步可以用更快一圈作为模板，开始逐段对比刹车点和出弯油门。",
+      metric: `刹车区 ${brakeZones.length}`,
+      segmentLabel: activeLayout?.name || "全圈",
+      severity: "low",
+    });
+  }
+
+  const penalties = [
+    Math.max(0, coastingPct - 8) * 1.2,
+    Math.max(0, 45 - fullThrottlePct) * 0.7,
+    heavyBrakeZones.length * 4,
+    exitDelayZones.length * 5,
+  ];
+  const score = Math.round(Math.max(30, Math.min(96, 92 - penalties.reduce((sum, value) => sum + value, 0))));
+  const topIssue = priorities[0];
+  return sanitizeTelemetryCoachAnalysis({
+    score,
+    segmentCount: brakeZones.length,
+    summary: licenseTest
+      ? `${licenseTest.id} ${getLicenseTypeMeta(licenseTest).label}：距金牌 ${Number.isFinite(licenseGap) ? formatGap(licenseGap) : "待记录"}；优先处理「${topIssue.title}」。`
+      : `识别到 ${brakeZones.length} 个主要刹车区；优先改 ${topIssue.segmentLabel || "全圈"} 的「${topIssue.title}」。`,
+    priorities,
+  });
+}
+
+function buildTelemetryPerformanceSamples(trace) {
+  const samples = sanitizeTelemetryTrace(trace)
+    .filter((sample) => Number.isFinite(sample.t))
+    .sort((a, b) => a.t - b.t);
+  let distance = 0;
+  const result = [];
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index];
+    const previous = samples[index - 1];
+    if (previous) {
+      const step = Math.hypot(sample.position.x - previous.position.x, sample.position.z - previous.position.z);
+      if (Number.isFinite(step) && step < 800) distance += step;
+    }
+    result.push({ ...sample, distance });
+  }
+  const totalDistance = distance || 1;
+  return result.map((sample, index) => ({
+    ...sample,
+    index,
+    progress: sample.distance / totalDistance,
+  }));
+}
+
+function detectTelemetryBrakeZones(samples, activeLayout) {
+  const zones = [];
+  let startIndex = -1;
+  for (let index = 0; index < samples.length; index += 1) {
+    const braking = samples[index].brake >= 15;
+    if (braking && startIndex < 0) startIndex = index;
+    if ((!braking || index === samples.length - 1) && startIndex >= 0) {
+      const endIndex = braking && index === samples.length - 1 ? index : index - 1;
+      if (endIndex - startIndex >= 1) zones.push(buildTelemetryBrakeZone(samples, startIndex, endIndex, zones.length, activeLayout));
+      startIndex = -1;
+    }
+  }
+  return zones;
+}
+
+function buildTelemetryBrakeZone(samples, startIndex, endIndex, order, activeLayout) {
+  const zoneSamples = samples.slice(startIndex, endIndex + 1);
+  const start = samples[startIndex];
+  const end = samples[endIndex];
+  const minSpeed = Math.min(...zoneSamples.map((sample) => sample.speedKmh));
+  const peakBrake = Math.max(...zoneSamples.map((sample) => sample.brake));
+  const exitSample = findTelemetryExitThrottleSample(samples, endIndex);
+  const durationSeconds = Math.max(0, (end.t - start.t) / 1000);
+  const exitDelaySeconds = exitSample ? Math.max(0, (exitSample.t - end.t) / 1000) : 0;
+  const progress = (start.progress + end.progress) / 2;
+  return {
+    order: order + 1,
+    progress,
+    label: getTelemetryBrakeZoneLabel(progress, order, activeLayout),
+    durationSeconds,
+    exitDelaySeconds,
+    exitDelayProgress: exitSample ? Math.max(0, exitSample.progress - end.progress) : 0,
+    entrySpeedKmh: start.speedKmh,
+    minSpeedKmh: minSpeed,
+    speedDropKmh: Math.max(0, start.speedKmh - minSpeed),
+    peakBrake,
+  };
+}
+
+function findTelemetryExitThrottleSample(samples, endIndex) {
+  for (let index = endIndex + 1; index < samples.length; index += 1) {
+    const sample = samples[index];
+    if (sample.throttle >= 80) return sample;
+    if (sample.progress - samples[endIndex].progress > 0.12) return null;
+  }
+  return null;
+}
+
+function getTelemetryBrakeZoneLabel(progress, order, activeLayout) {
+  if (!activeLayout) return `第 ${order + 1} 个刹车区`;
+  const entry = getLayoutEntryById(activeLayout.id);
+  const cornerCount = Number(activeLayout.corners) || 0;
+  const names = getCornerNames(entry?.track?.name ?? state.selected, activeLayout, cornerCount);
+  if (!names.length) return `${activeLayout.name} · 刹车区 ${order + 1}`;
+  const index = Math.min(names.length - 1, Math.max(0, Math.floor(progress * names.length)));
+  return names[index] || `${activeLayout.name} · 刹车区 ${order + 1}`;
+}
+
+function percentOfSamples(samples, predicate) {
+  if (!samples.length) return 0;
+  return (samples.filter(predicate).length / samples.length) * 100;
+}
+
+function getTelemetryStatusInfo() {
+  const connection = telemetryState.connection;
+  const status = telemetryState.lastStatus ?? {};
+  const secondsSinceLastPacket = Number(status.secondsSinceLastPacket);
+  const commandHint = "启动：npm run telemetry -- --ps5 192.168.3.78";
+  const baseHints = [
+    commandHint,
+    "确认 PS5 与电脑在同一局域网。",
+    "GT7 需要进入实际驾驶画面，停在主菜单通常没有实时包。",
+    "Windows 防火墙需允许 Node.js 使用 UDP 33740/33739。",
+    "如果端口被占用，请关闭其他 GT7 telemetry 工具后重试。",
+  ];
+
+  if (telemetryState.status === "unsupported") {
+    return {
+      label: "浏览器不支持",
+      title: "当前浏览器不能建立 WebSocket",
+      copy: "主站会保持手动记录模式，遥测自动记录不可用。",
+      className: "is-offline",
+      hints: baseHints.slice(0, 1),
+    };
+  }
+
+  if (telemetryState.status === "connecting") {
+    return {
+      label: "连接中",
+      title: "正在连接本地 telemetry-agent",
+      copy: "如果长时间停留在这里，先打开 /health 检查 agent 是否启动。",
+      className: "is-waiting",
+      hints: baseHints,
+    };
+  }
+
+  if (["agent_unreachable", "manual_mode"].includes(connection) || telemetryState.status === "offline") {
+    return {
+      label: "未检测到 agent",
+      title: "未检测到本地 telemetry-agent",
+      copy: "手动训练记录仍可使用；需要实时遥测时请先启动本地采集器。",
+      className: "is-offline",
+      hints: baseHints,
+    };
+  }
+
+  if (connection === "receiving_but_decode_failed") {
+    return {
+      label: "解密失败",
+      title: "收到 UDP 包，但无法解析 GT7 遥测",
+      copy: "网络路径已经通了，可能是包格式变化、非 GT7 包或其他工具转发了异常数据。",
+      className: "is-error",
+      hints: status.hints?.length ? status.hints : baseHints,
+    };
+  }
+
+  if (connection === "receiving_decoded") {
+    if (Number.isFinite(secondsSinceLastPacket) && secondsSinceLastPacket > 5) {
+      return {
+        label: "遥测中断",
+        title: "遥测数据超过 5 秒未更新",
+        copy: "可能已退出驾驶、PS5 休眠、网络切换，或防火墙阻断了后续 UDP 包。",
+        className: "is-waiting",
+        hints: baseHints.slice(1),
+      };
+    }
+    return {
+      label: "实时在线",
+      title: "PS5 / GT7 遥测实时在线",
+      copy: "完成圈会进入待归档列表，确认布局后再写入训练记录。",
+      className: "is-online",
+      hints: ["数据仅在本机处理，不上传；高置信度匹配也需要用户确认归档。"],
+    };
+  }
+
+  if (connection === "packet_seen_recently") {
+    return {
+      label: "等待解密",
+      title: "收到过 PS5 包，正在等待稳定遥测",
+      copy: "如果一直不进入实时在线，请确认已经进入驾驶并检查 agent 日志。",
+      className: "is-waiting",
+      hints: status.hints?.length ? status.hints : baseHints,
+    };
+  }
+
+  return {
+    label: "等待 PS5",
+    title: "agent 已启动，但还没收到 PS5 遥测",
+    copy: "这通常是 PS5 IP、同网段、驾驶状态或 Windows 防火墙的问题。",
+    className: "is-waiting",
+    hints: status.hints?.length ? [commandHint, ...status.hints] : baseHints,
+  };
 }
 
 function clampTelemetryPercent(value) {
@@ -2945,4 +5282,16 @@ function formatTime(totalSeconds) {
 applyHashRoute();
 initializeList();
 applyFilters();
+renderLicenseCoachPanel();
+if (state.coachMode) renderCoachMode();
 initializeTelemetryPanel();
+
+window.addEventListener("hashchange", () => {
+  applyHashRoute();
+  renderLicenseCoachPanel();
+  if (state.coachMode) {
+    renderCoachMode();
+  } else {
+    renderDetailOnly();
+  }
+});

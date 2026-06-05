@@ -1,8 +1,8 @@
 {
   "name": "gt7-track-atlas",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
-  "description": "Static GT7 Track Atlas plus a local telemetry connectivity tester.",
+  "description": "Static GT7 Track Atlas with local telemetry-driven training archive workflow.",
   "scripts": {
     "telemetry": "node telemetry-agent/index.js"
   },

@@ -1,78 +1,78 @@
 # GT7 Track Atlas
 
-一个可离线打开的 Gran Turismo 7 赛道训练助手，按 World Circuits 大陆分区整理赛道，提供布局图、目标圈速、车辆选择建议、本地训练记录和真实赛道参考校验。
+当前版本：`1.4.0`
 
-## Product Notes
+GT7 Track Atlas 是一个面向进阶玩家的本地训练助手。主站仍然可以直接用 `file:///E:/GT7guidebook/index.html` 打开；遥测功能通过本机 `telemetry-agent` 读取 PS5 / GT7 UDP 数据，不上传、不需要账号、不依赖后端。
 
-- [V1.3 遥测实时读取](./telemetry-agent/README.md)：本版先验证 PS5 / GT7 UDP telemetry 链路，主站新增实时连接面板，显示车速、挡位、转速、油门、刹车和采样率。
-- [V1.2 训练闭环路线](./docs/v1.2-training-loop-roadmap.md)：本版把平台升级为手动记录驱动的日常训练助手，重点优化“今天练什么”、多次练习记录、复盘反馈和车辆推荐联动。
+## 当前能力
 
-## 当前版本
+- 按 GT7 World Circuits 地区整理 41 个赛道地点和 121 个官方布局。
+- 每个 layout 独立显示赛道图、长度、弯角、最长直道、海拔差、车辆建议与训练目标。
+- 本地训练记录保存在浏览器中，支持目标难度、最佳圈速、练习状态、收藏和练习笔记。
+- V1.4 新增遥测状态中心：明确显示 agent 未启动、等待 PS5、解密失败、实时在线和遥测中断。
+- V1.4 新增待归档遥测圈：完成圈先保存 trace，再由用户确认 layout 后写入训练记录。
+- V1.4 新增布局模板：把当前遥测圈绑定为当前 layout 模板，后续圈会给出推荐 layout、置信度和冲突提示。
 
-**V1.3.0 - 遥测实时读取测试版**
+## 本地打开
 
-本版本把训练仪表盘升级为“今天练什么”，每个 layout 支持多次练习记录、最近 5 次复盘、车辆与设置记录、目标任务提示和车辆推荐联动。
+直接打开：
 
-完整记录见 [CHANGELOG.md](./CHANGELOG.md)。
+```powershell
+E:\GT7guidebook\index.html
+```
+
+或在浏览器地址栏使用：
+
+```text
+file:///E:/GT7guidebook/index.html
+```
 
 ## 遥测测试
+
+确保 PC 和 PS5 在同一局域网，并在 GT7 中进入实际驾驶画面后运行：
 
 ```powershell
 npm run telemetry -- --ps5 192.168.3.78
 ```
 
-启动后打开主站，页面会自动连接 `ws://127.0.0.1:8787/live`，并显示实时车速、挡位、转速、油门、刹车和采样率。完成一圈后会生成“待归档遥测圈”，确认赛道布局后可写入当前 layout 的训练记录。状态体检地址为 `http://127.0.0.1:8787/health`。
+默认端口：
 
-## 使用
+- UDP 接收：`33740`
+- PS5 心跳：`33739`
+- 本地健康检查：`http://127.0.0.1:8787/health`
+- WebSocket：`ws://127.0.0.1:8787/live`
 
-直接用浏览器打开：
+如果主站显示没有连接上 PS5，优先检查：
 
-```text
-index.html
+- PS5 IP 是否正确。
+- PC 与 PS5 是否在同一网段。
+- GT7 是否已经进入驾驶而不是主菜单。
+- Windows 防火墙是否允许 Node.js 使用 UDP `33740/33739`。
+- 是否有其他 GT7 telemetry 工具占用了端口。
+
+## 数据保存策略
+
+- `localStorage`：训练摘要、偏好、待归档列表。
+- `IndexedDB gt7-track-atlas-telemetry-v1`：降采样 trace、lap summary、归档 layout、布局模板。
+- 所有数据默认只在本机浏览器中保存，不上传到 GitHub 或第三方服务。
+
+## 维护说明
+
+项目保持静态结构：
+
+- `index.html`
+- `styles.css`
+- `app.js`
+- `official-tracks-data.js`
+- `layout-assets.js`
+- `layout-verification.js`
+- `vehicle-assets.js`
+- `telemetry-agent/index.js`
+
+语法检查：
+
+```powershell
+node --check app.js
+node --check telemetry-agent/index.js
+npm run telemetry -- --self-test
 ```
-
-项目不需要构建工具，也不依赖后端服务。
-
-## 内容
-
-- 41 个 GT7 赛道地点，121 个官方布局基准
-- 布局级赛道图，切换布局时同步切换地图、长度、弯角、最长直道和海拔差
-- 训练仪表盘：进行中、已达标、最近练习和下一条推荐练习
-- 布局级本地训练记录：多次练习 session、最佳圈速、目标难度、练习状态、收藏、车辆设置和复盘笔记
-- 多布局赛道对比表，帮助判断当前赛道内的练习优先级
-- URL 深链支持，例如 `#track=Nurburgring&layout=2066d9`
-- 车辆推荐卡片与本地车辆缩略图
-- 真实赛道与 GT7 官方长度的双向校验说明
-- 搜索、区域筛选、难度筛选和训练状态筛选
-
-## 版本区分
-
-- **V1.0.0**：赛道资料库基线，重点是 GT7 赛道检索、布局资料、难度圈速和车辆建议。
-- **V1.1.0**：训练助手版本，重点是 layout 级训练闭环、本地记录、布局对比和交互标注。
-- **V1.1.1**：弯角校准 Bugfix，重点是停用错误猜点并加入本地校准工具。
-- **V1.1.2**：纽北弯角名称库，重点是 Nürburgring layout 级自动命名和长赛道校准面板优化。
-- **V1.1.3**：弯角点位校准，重点是 Nürburgring 点位与布局图弯道位置匹配。
-- **V1.2.0**：手动训练闭环，重点是多次练习记录、最近复盘、今天练什么和车辆推荐联动。
-
-## 数据来源
-
-- Gran Turismo 官方产品页与 GT7 Tracks List
-- GT Wiki Tracks in Gran Turismo 7，用于布局级赛道图
-- 真实赛道公开资料，用于现实长度参考
-- GTPlanet / GTPlus，用于社区整理参考
-
-## 主要文件
-
-- `index.html`：静态页面入口
-- `styles.css`：视觉与交互样式
-- `app.js`：赛道数据、筛选、布局切换、训练记录和渲染逻辑
-- `official-tracks-data.js`：GT7 官方布局数据
-- `layout-assets.js` / `layout-verification.js`：布局图片映射与校验数据
-- `vehicle-assets.js`：车辆缩略图映射
-- `assets/`：本地缓存图片资源
-
-## 维护脚本
-
-- `download-layout-maps.js`：从 GT Wiki 重新生成布局图缓存与布局映射
-- `download-track-maps.js`：下载赛道地点级备用图
-- `download-thumbnails.js`：下载赛道缩略图
